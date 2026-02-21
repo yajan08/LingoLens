@@ -335,14 +335,6 @@ private extension QuizCameraView {
 @available(iOS 26.0, *)
 private extension QuizCameraView {
 	
-	var blueOrangeGradient: LinearGradient {
-		LinearGradient(
-			colors: [.blue.opacity(0.85), Color(red: 0.9, green: 0.45, blue: 0.1).opacity(0.85)],
-			startPoint: .leading,
-			endPoint: .trailing
-		)
-	}
-	
 		// FIX: all card views receive quiz as explicit parameter
 	func targetWordBanner(quiz: FoundationAIService.QuizResult) -> some View {
 		HStack(spacing: 12) {
@@ -590,7 +582,7 @@ private extension QuizCameraView {
 					}
 					.frame(maxWidth: .infinity)
 					.padding(.vertical, 17)
-					.background(blueOrangeGradient, in: Capsule())
+					.background(.blue, in: Capsule())
 					.foregroundStyle(.white)
 					.shadow(color: .blue.opacity(0.25), radius: 14, y: 5)
 				}

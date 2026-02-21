@@ -45,7 +45,7 @@ final actor FoundationAIService: ObservableObject {
 		let prompt = """
 		Analyze these labels: \(predictions.joined(separator: ", "))
 		Extract only specific, concrete, physical objects.
-		Remove all: environments, abstract concepts, and generic categories (like 'structure' or 'electronics').
+		Remove all: environments, abstract concepts, and generic categories (like 'structure', 'electronics','adult', 'people', 'portal', or any other generic terms or anyhting that isnt an object.).
 		Output: Comma-separated list of nouns only. If none, return 'NONE'.
 		"""
 		
@@ -87,7 +87,7 @@ final actor FoundationAIService: ObservableObject {
 		// MARK: - Translation
 	private func translate(_ object: String) async -> QuizResult? {
 			// Shorter, instructional prompts trigger fewer safety guardrails
-		let prompt = "Translate the English noun '\(object)' to \(selectedLanguageRaw). Return ONLY the translated word."
+		let prompt = "Translate the English word '\(object)' to \(selectedLanguageRaw). Return ONLY the translated word."
 		
 		do {
 			let session = LanguageModelSession()

@@ -1,7 +1,3 @@
-	//
-	//  SpeechService.swift
-	//  LingoLens
-	//
 
 import Foundation
 import SwiftUI
@@ -43,7 +39,6 @@ final class SpeechService {
 	func stop() {
 		synthesizer.stopSpeaking(at: .immediate)
 	}
-	
 	
 		// MARK: - Voice Selection (OFFLINE SAFE)
 	

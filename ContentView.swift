@@ -3,6 +3,8 @@ import SwiftUI
 @available(iOS 26.0, *)
 struct ContentView: View {
 	
+	@State private var navigationPath = NavigationPath()
+	
 		// MARK: - State
 	@AppStorage("selected_language")
 	private var selectedLanguageRaw = AppLanguage.french.rawValue
@@ -16,7 +18,7 @@ struct ContentView: View {
 	
 		// MARK: - Body
 	var body: some View {
-		NavigationStack {
+		NavigationStack(path: $navigationPath) {
 			ScrollView(showsIndicators: false) {
 				VStack(spacing: 28) {
 					descriptionHeader
@@ -35,6 +37,9 @@ struct ContentView: View {
 			.background(Color(.systemGroupedBackground))
 			.sheet(item: $activeInfoType) { type in
 				LingoInfoSheet(type: type, selectedLanguage: selectedLanguage)
+			}
+			.onReceive(NotificationCenter.default.publisher(for: .init("dismissToRoot"))) { _ in
+				navigationPath = NavigationPath()
 			}
 		}
 	}
@@ -162,7 +167,7 @@ private extension ContentView {
 	
 	var modeSelectionArea: some View {
 		HStack(spacing: 16) {
-			NavigationLink(destination: QuickScanView()) {
+			NavigationLink(destination: QuickScanView(path: $navigationPath)) {
 				Label("Quick Scan", systemImage: "bolt.fill")
 					.font(.headline)
 					.frame(maxWidth: .infinity)

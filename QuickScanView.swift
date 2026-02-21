@@ -4,6 +4,7 @@ import Vision
 @available(iOS 26.0, *)
 struct QuickScanView: View {
 		// MARK: - Properties
+	
 	@StateObject private var cameraService = CameraService()
 	@State private var detector = ObjectDetector()
 	private let aiService = FoundationAIService()
@@ -18,7 +19,6 @@ struct QuickScanView: View {
 	@State private var pulseScale: CGFloat = 1.0
 	@State private var scanStatus: ScanStatus = .ready
 	
-		// NEW: tracks which result the detail sheet is showing
 	@State private var selectedResult: FoundationAIService.QuizResult? = nil
 	
 	enum ScanStatus {
@@ -28,6 +28,7 @@ struct QuickScanView: View {
 	@Environment(\.dismiss) private var dismiss
 	private let impact = UIImpactFeedbackGenerator(style: .medium)
 	private let notification = UINotificationFeedbackGenerator()
+	@Binding var path: NavigationPath
 	
 		// MARK: - Body
 	var body: some View {
@@ -84,7 +85,6 @@ struct QuickScanView: View {
 		.sheet(isPresented: $showHelp) {
 			QuickScanInstructionsSheet()
 		}
-			// NEW: word detail sheet
 		.sheet(item: $selectedResult) { result in
 			WordDetailSheet(result: result, aiService: aiService)
 		}
@@ -108,7 +108,6 @@ private extension QuickScanView {
 		ScrollView(.horizontal, showsIndicators: false) {
 			HStack(spacing: 12) {
 				ForEach(detectedResults) { result in
-						// NEW: card + info button side by side
 					resultCard(result)
 				}
 			}
@@ -117,35 +116,48 @@ private extension QuickScanView {
 	}
 	
 	func resultCard(_ result: FoundationAIService.QuizResult) -> some View {
-		HStack(alignment: .top, spacing: 0) {
-			
-				// Main card content
-			VStack(alignment: .leading, spacing: 6) {
+		Button {
+			selectedResult = result
+		} label: {
+			HStack(alignment: .center, spacing: 12) {
 				
-				Text(result.translatedWord.capitalized)
-					.font(.system(.title3, design: .rounded).bold())
-					.foregroundStyle(.primary)
-				
-				Text(result.correctEnglish.uppercased())
-					.font(.system(size: 10, weight: .bold, design: .monospaced))
-					.foregroundStyle(.secondary)
+				VStack(alignment: .leading, spacing: 6) {
+					
+					HStack{
+						Text(result.translatedWord.capitalized)
+							.font(.system(.title3, design: .rounded).bold())
+							.foregroundStyle(.primary)
+						Spacer()
+						Image(systemName: "info.circle")
+							.font(.system(size: 17, weight: .semibold))
+							.foregroundStyle(.tertiary)
+					}
+					
+					
+					Text(result.correctEnglish.uppercased())
+						.font(.system(size: 10, weight: .bold, design: .monospaced))
+						.foregroundStyle(.secondary)
+				}
 			}
 			.padding(.horizontal, 20)
 			.padding(.vertical, 18)
-			
-				// NEW: info button pinned to top-right of card
-			Button {
-				selectedResult = result
-			} label: {
-				Image(systemName: "info.circle.fill")
-					.font(.system(size: 18))
-					.symbolRenderingMode(.hierarchical)
-					.foregroundStyle(.blue)
-			}
-			.padding(.top, 14)
-			.padding(.trailing, 14)
+			.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+			.overlay(
+				RoundedRectangle(cornerRadius: 24, style: .continuous)
+					.stroke(
+						LinearGradient(
+							colors: [
+								Color.orange.opacity(0.5),
+								Color.blue.opacity(0.4)
+							],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						),
+						lineWidth: 1
+					)
+			)
 		}
-		.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+		.buttonStyle(.plain)
 	}
 	
 	var tapToIdentifyHint: some View {
@@ -284,7 +296,7 @@ private extension QuickScanView {
 }
 
 
-	// MARK: - Word Detail Sheet (NEW)
+	// MARK: - Word Detail Sheet
 
 @available(iOS 26.0, *)
 struct WordDetailSheet: View {
@@ -297,7 +309,6 @@ struct WordDetailSheet: View {
 	@State private var sentence: FoundationAIService.BilingualSentence? = nil
 	@State private var isLoading = true
 	
-		// NEW: speech service
 	private let speech = SpeechService.shared
 	
 	var body: some View {
@@ -306,42 +317,60 @@ struct WordDetailSheet: View {
 				
 					// Word hero section
 				VStack(spacing: 12) {
-					
-						// Translation pair
 					VStack(spacing: 6) {
 						
-							// NEW: word + speak button
-						HStack(spacing: 10) {
-							
+							// Translated word + speak button embedded in background
+						HStack(spacing: 0) {
 							Text(result.translatedWord.capitalized)
 								.font(.system(size: 42, weight: .bold, design: .rounded))
 								.foregroundStyle(.primary)
+							
+							Spacer()
 							
 							Button {
 								speech.speak(result.translatedWord)
 							} label: {
 								Image(systemName: "speaker.wave.2.fill")
-									.font(.title2)
-									.symbolRenderingMode(.hierarchical)
-									.foregroundStyle(.blue)
+									.font(.system(size: 16, weight: .semibold))
+									.foregroundStyle(
+										LinearGradient(
+											colors: [.orange, .blue],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
+									.padding(10)
+									.background(.ultraThinMaterial, in: Circle())
+									.overlay(
+										Circle().stroke(
+											LinearGradient(
+												colors: [Color.orange.opacity(0.5), Color.blue.opacity(0.4)],
+												startPoint: .topLeading,
+												endPoint: .bottomTrailing
+											),
+											lineWidth: 1
+										)
+									)
 							}
 						}
+						.padding(.horizontal, 24)
 						
 						HStack(spacing: 6) {
-							Image(systemName: "arrow.up.arrow.down")
+							Image(systemName: "globe")
 								.font(.caption)
 								.foregroundStyle(.tertiary)
 							
 							Text(result.correctEnglish.capitalized)
-								.font(.system(.title3, design: .rounded))
+								.font(.system(.subheadline, design: .rounded))
 								.foregroundStyle(.secondary)
 						}
+						.frame(maxWidth: .infinity, alignment: .leading)
+						.padding(.horizontal, 24)
 					}
 				}
 				.frame(maxWidth: .infinity)
 				.padding(.vertical, 36)
 				.background(.ultraThinMaterial)
-				
 				
 					// Sentence section
 				Group {
@@ -375,40 +404,58 @@ struct WordDetailSheet: View {
 		}
 	}
 	
-	
-		// Sentence loaded
 	func sentenceView(_ s: FoundationAIService.BilingualSentence) -> some View {
 		VStack(spacing: 16) {
 			
-				// Section label
 			HStack {
 				Image(systemName: "text.quote")
-					.foregroundStyle(.blue)
+					.foregroundStyle(
+						LinearGradient(colors: [.orange, .blue], startPoint: .leading, endPoint: .trailing)
+					)
 				
 				Text("Example Sentence")
 					.font(.system(.subheadline, design: .rounded).bold())
 					.foregroundStyle(.secondary)
 				
 				Spacer()
-				
-					// NEW: speak full translated sentence
-				Button {
-					speech.speak(s.translated)
-				} label: {
-					Image(systemName: "speaker.wave.2.fill")
-						.font(.title3)
-						.symbolRenderingMode(.hierarchical)
-						.foregroundStyle(.blue)
-				}
 			}
 			
-			
-				// Translated sentence card
-			VStack(alignment: .leading, spacing: 8) {
+				// Translated sentence card with speak inside
+			VStack(alignment: .leading, spacing: 10) {
 				
-				Label("Translated", systemImage: "character.bubble.fill")
-					.font(.system(size: 11, weight: .bold))
-					.foregroundStyle(.blue)
+				HStack(alignment: .top) {
+					Label("Translated", systemImage: "character.bubble.fill")
+						.font(.system(size: 11, weight: .bold))
+						.foregroundStyle(.orange)
+					
+					Spacer()
+					
+					Button {
+						speech.speak(s.translated)
+					} label: {
+						Image(systemName: "speaker.wave.2.fill")
+							.font(.system(size: 13, weight: .semibold))
+							.foregroundStyle(
+								LinearGradient(
+									colors: [.orange, .blue],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+							.padding(8)
+							.background(.ultraThinMaterial, in: Circle())
+							.overlay(
+								Circle().stroke(
+									LinearGradient(
+										colors: [Color.orange.opacity(0.5), Color.blue.opacity(0.4)],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									),
+									lineWidth: 1
+								)
+							)
+					}
+				}
 				
 				Text(s.translated)
 					.font(.system(.body, design: .rounded).weight(.medium))
@@ -418,10 +465,24 @@ struct WordDetailSheet: View {
 			.frame(maxWidth: .infinity, alignment: .leading)
 			.padding(16)
 			.background(
-				Color.blue.opacity(0.08),
+				LinearGradient(
+					colors: [Color.orange.opacity(0.08), Color.blue.opacity(0.08)],
+					startPoint: .topLeading,
+					endPoint: .bottomTrailing
+				),
 				in: RoundedRectangle(cornerRadius: 16, style: .continuous)
 			)
-			
+			.overlay(
+				RoundedRectangle(cornerRadius: 16, style: .continuous)
+					.stroke(
+						LinearGradient(
+							colors: [Color.orange.opacity(0.3), Color.blue.opacity(0.25)],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						),
+						lineWidth: 1
+					)
+			)
 			
 				// English sentence card
 			VStack(alignment: .leading, spacing: 8) {
@@ -438,20 +499,16 @@ struct WordDetailSheet: View {
 			.frame(maxWidth: .infinity, alignment: .leading)
 			.padding(16)
 			.background(
-				Color(.tertiarySystemBackground),
+				Color(.secondarySystemBackground),
 				in: RoundedRectangle(cornerRadius: 16, style: .continuous)
 			)
 		}
 	}
 	
-	
-		// Loading state
 	var sentenceLoadingView: some View {
 		VStack(spacing: 14) {
-			
 			ProgressView()
 				.controlSize(.regular)
-			
 			Text("Generating example sentence...")
 				.font(.system(.subheadline, design: .rounded))
 				.foregroundStyle(.secondary)
@@ -460,15 +517,11 @@ struct WordDetailSheet: View {
 		.padding(.top, 32)
 	}
 	
-	
-		// Error / nil state
 	var sentenceErrorView: some View {
 		VStack(spacing: 10) {
-			
 			Image(systemName: "exclamationmark.circle")
 				.font(.system(size: 32))
 				.foregroundStyle(.secondary)
-			
 			Text("Couldn't load an example sentence.")
 				.font(.subheadline)
 				.foregroundStyle(.secondary)
@@ -477,178 +530,45 @@ struct WordDetailSheet: View {
 		.padding(.top, 32)
 	}
 }
-//struct WordDetailSheet: View {
-//	
-//	let result: FoundationAIService.QuizResult
-//	let aiService: FoundationAIService
-//	
-//	@Environment(\.dismiss) private var dismiss
-//	
-//	@State private var sentence: FoundationAIService.BilingualSentence? = nil
-//	@State private var isLoading = true
-//	
-//	var body: some View {
-//		NavigationStack {
-//			VStack(spacing: 0) {
-//				
-//					// Word hero section
-//				VStack(spacing: 12) {
-//					
-//						// Translation pair
-//					VStack(spacing: 6) {
-//						Text(result.translatedWord.capitalized)
-//							.font(.system(size: 42, weight: .bold, design: .rounded))
-//							.foregroundStyle(.primary)
-//						
-//						HStack(spacing: 6) {
-//							Image(systemName: "arrow.up.arrow.down")
-//								.font(.caption)
-//								.foregroundStyle(.tertiary)
-//							Text(result.correctEnglish.capitalized)
-//								.font(.system(.title3, design: .rounded))
-//								.foregroundStyle(.secondary)
-//						}
-//					}
-//				}
-//				.frame(maxWidth: .infinity)
-//				.padding(.vertical, 36)
-//				.background(.ultraThinMaterial)
-//				
-//					// Sentence section
-//				Group {
-//					if isLoading {
-//						sentenceLoadingView
-//					} else if let sentence {
-//						sentenceView(sentence)
-//					} else {
-//						sentenceErrorView
-//					}
-//				}
-//				.padding(24)
-//				
-//				Spacer()
-//			}
-//			.navigationTitle("Word Details")
-//			.navigationBarTitleDisplayMode(.inline)
-//			.toolbar {
-//				ToolbarItem(placement: .cancellationAction) {
-//					Button {
-//						dismiss()
-//					} label: {
-//						Image(systemName: "xmark")
-//					}
-//				}
-//			}
-//		}
-//		.task {
-//			sentence = await aiService.generateBilingualSentence(for: result.correctEnglish)
-//			isLoading = false
-//		}
-//	}
-//	
-//		// Sentence loaded
-//	func sentenceView(_ s: FoundationAIService.BilingualSentence) -> some View {
-//		VStack(spacing: 16) {
-//			
-//				// Section label
-//			HStack {
-//				Image(systemName: "text.quote")
-//					.foregroundStyle(.blue)
-//				Text("Example Sentence")
-//					.font(.system(.subheadline, design: .rounded).bold())
-//					.foregroundStyle(.secondary)
-//				Spacer()
-//			}
-//			
-//				// Translated sentence card
-//			VStack(alignment: .leading, spacing: 8) {
-//				Label("Translated", systemImage: "character.bubble.fill")
-//					.font(.system(size: 11, weight: .bold))
-//					.foregroundStyle(.blue)
-//				
-//				Text(s.translated)
-//					.font(.system(.body, design: .rounded).weight(.medium))
-//					.foregroundStyle(.primary)
-//					.fixedSize(horizontal: false, vertical: true)
-//			}
-//			.frame(maxWidth: .infinity, alignment: .leading)
-//			.padding(16)
-//			.background(Color.blue.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-//			
-//				// English sentence card
-//			VStack(alignment: .leading, spacing: 8) {
-//				Label("English", systemImage: "textformat.abc")
-//					.font(.system(size: 11, weight: .bold))
-//					.foregroundStyle(.secondary)
-//				
-//				Text(s.english)
-//					.font(.system(.body, design: .rounded))
-//					.foregroundStyle(.secondary)
-//					.fixedSize(horizontal: false, vertical: true)
-//			}
-//			.frame(maxWidth: .infinity, alignment: .leading)
-//			.padding(16)
-//			.background(Color(.tertiarySystemBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-//		}
-//	}
-//	
-//		// Loading state
-//	var sentenceLoadingView: some View {
-//		VStack(spacing: 14) {
-//			ProgressView()
-//				.controlSize(.regular)
-//			Text("Generating example sentence...")
-//				.font(.system(.subheadline, design: .rounded))
-//				.foregroundStyle(.secondary)
-//		}
-//		.frame(maxWidth: .infinity)
-//		.padding(.top, 32)
-//	}
-//	
-//		// Error / nil state
-//	var sentenceErrorView: some View {
-//		VStack(spacing: 10) {
-//			Image(systemName: "exclamationmark.circle")
-//				.font(.system(size: 32))
-//				.foregroundStyle(.secondary)
-//			Text("Couldn't load an example sentence.")
-//				.font(.subheadline)
-//				.foregroundStyle(.secondary)
-//		}
-//		.frame(maxWidth: .infinity)
-//		.padding(.top, 32)
-//	}
-//}
-
 
 	// MARK: - Instructions (untouched)
 struct QuickScanInstructionsSheet: View {
 	@Environment(\.dismiss) var dismiss
+	
 	var body: some View {
 		NavigationStack {
 			List {
-				Section {
+				Section("Getting Started") {
 					InstructionRow(
-						icon: "bolt.fill",
+						icon: "hand.tap.fill",
 						color: .blue,
-						title: "Instant Scan",
-						detail: "Tap once to identify and translate everything in view."
+						title: "Tap to Identify",
+						detail: "Tap anywhere on the screen to instantly identify and translate every object in view."
 					)
 					InstructionRow(
-						icon: "camera.viewfinder",
+						icon: "sun.max.fill",
 						color: .orange,
-						title: "Best Results",
-						detail: "Keep your phone 2-3 feet away and ensure good lighting."
+						title: "Light it Up",
+						detail: "Good lighting makes a big difference. Scan in a well-lit space and stay 2–3 feet from your objects."
 					)
+				}
+				
+				Section("Better Accuracy") {
 					InstructionRow(
 						icon: "move.3d",
 						color: .purple,
-						title: "Angles Matter",
-						detail: "Try a 45° angle rather than looking straight down."
+						title: "Angle it Right",
+						detail: "A 45° diagonal view usually works best. If something isn't recognised, try shifting your perspective — top, side, and diagonal views each reveal different details."
+					)
+					InstructionRow(
+						icon: "sparkles",
+						color: .indigo,
+						title: "One at a Time",
+						detail: "For the most accurate results, centre one object in the frame before tapping. Less clutter means sharper identification."
 					)
 				}
 			}
-			.navigationTitle("Quick Scan Guide")
+			.navigationTitle("How to Scan")
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {

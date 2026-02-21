@@ -216,7 +216,6 @@ private extension ResultsView {
 		.buttonStyle(.plain)
 	}
 	
-	
 	var startButton: some View {
 		
 		Button {
@@ -236,7 +235,6 @@ private extension ResultsView {
 				.clipShape(Capsule())
 		}
 		.disabled(!canStart)
-		.padding()
 	}
 	
 	var emptyStateContent: some View {
