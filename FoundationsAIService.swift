@@ -41,13 +41,30 @@ final actor FoundationAIService: ObservableObject {
 	func filterObjects(from predictions: [String]) async -> [String] {
 		guard model.isAvailable else { return [] }
 		
-			// Safety-Hardened Prompt
+
 		let prompt = """
-		Analyze these labels: \(predictions.joined(separator: ", "))
-		Extract only specific, concrete, physical objects.
-		Remove all: environments, abstract concepts, and generic categories (like 'structure', 'electronics','adult', 'people', 'portal', or any other generic terms or anyhting that isnt an object.).
-		Output: Comma-separated list of nouns only. If none, return 'NONE'.
-		"""
+	Analyze these labels: \(predictions.joined(separator: ", "))
+	
+	Task: Identify only specific, discrete, and countable physical objects. 
+	
+	Strict Exclusion Rules:
+	1. NO generic categories (e.g., 'electronics', 'machinery', 'appliance', 'conveyance').
+	2. NO materials or textures (e.g., 'wood_processed', 'metal', 'plastic', 'fabric').
+	3. NO abstract concepts, people, or environments (e.g., 'adult', 'structure', 'indoor', 'portal').
+	4. NO collective nouns (e.g., 'furniture', 'equipment', 'material').
+	
+	Requirement: Return only the concrete names of individual items (e.g., 'Hammer', 'Chair', 'Coffee Mug'). 
+	
+	Output Format: A comma-separated list of nouns. If no specific objects are found, return 'NONE'.
+	"""
+		
+
+//		let prompt = """
+//		Analyze these labels: \(predictions.joined(separator: ", "))
+//		Extract only specific, concrete, physical objects.
+//		Remove all: environments, abstract concepts, and generic categories (like 'structure', 'electronics','adult', 'people', 'portal', or any other generic terms or anyhting that isnt an object.).
+//		Output: Comma-separated list of nouns only. If none, return 'NONE'.
+//		"""
 		
 		do {
 			let session = LanguageModelSession()
@@ -112,7 +129,7 @@ final actor FoundationAIService: ObservableObject {
 		Word: \(word)
 		Language: \(selectedLanguageRaw)
 		
-		Task: Write a neutral, 5-word English sentence using '\(word)'. 
+		Task: Write a neutral, simple English sentence using '\(word)'. 
 		Then translate it to \(selectedLanguageRaw).
 		
 		Format:

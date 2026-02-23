@@ -78,6 +78,7 @@ struct QuizCameraView: View {
 					processingOverlay
 				}
 			}
+			.preferredColorScheme(.dark)
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbarBackground(.ultraThinMaterial, for: .navigationBar)
 			.toolbarColorScheme(.dark, for: .navigationBar)
@@ -572,54 +573,46 @@ private extension QuizCameraView {
 	
 	var bottomActionArea: some View {
 		VStack(spacing: 12) {
-				// CHANGE: Simplified check. If detection is successful OR answer is shown, we show the "Continue" button
-			if detectionStatus == .success || showAnswer {
-				Button(action: nextObject) {
-					HStack(spacing: 8) {
-						Text("Continue Hunt")
-							.font(.system(.headline, design: .rounded).bold())
-						Image(systemName: "arrow.right.circle.fill")
-					}
-					.frame(maxWidth: .infinity)
-					.padding(.vertical, 17)
-					.background(.blue, in: Capsule())
-					.foregroundStyle(.white)
-					.shadow(color: .blue.opacity(0.25), radius: 14, y: 5)
-				}
-			} else {
-					// Single Show Answer button
-				Button {
+				// Computed state for the combined button
+			let isComplete = detectionStatus == .success || showAnswer
+			
+			Button {
+				if isComplete {
+					nextObject()
+				} else {
 					withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
-						showAnswer = true // CHANGE: Just set to true, once tapped it stays until nextObject
+						showAnswer = true
 					}
-					if showAnswer {
-						impact.impactOccurred()
-						loadRevealedSentence()
-					}
-				} label: {
-					HStack(spacing: 7) {
-						Image(systemName: "eye")
-							.font(.system(size: 13, weight: .semibold))
-						Text("Show Answer")
-							.font(.system(.subheadline, design: .rounded).bold())
-					}
-					.frame(maxWidth: .infinity)
-					.padding(.vertical, 16)
-					.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-					.overlay(
-						RoundedRectangle(cornerRadius: 18, style: .continuous)
-							.strokeBorder(
-								LinearGradient(
-									colors: [.blue.opacity(0.35), .orange.opacity(0.25)],
-									startPoint: .leading,
-									endPoint: .trailing
-								),
-								lineWidth: 1
-							)
-					)
-					.foregroundStyle(.white)
+					impact.impactOccurred()
+					loadRevealedSentence()
 				}
+			} label: {
+				HStack(spacing: 8) {
+					Image(systemName: isComplete ? "arrow.right.circle.fill" : "eye")
+						.font(.system(size: 16, weight: .semibold))
+					
+					Text(isComplete ? "Continue Hunt" : "Show Answer")
+						.font(.system(.headline, design: .rounded).bold())
+				}
+				.frame(maxWidth: .infinity)
+				.padding(.vertical, 17)
+				.background(isComplete ? Color.blue : Color.white.opacity(0.1), in: Capsule())
+				.background(isComplete ? .thinMaterial : .ultraThinMaterial, in: Capsule())
+				.foregroundStyle(.white)
+				.overlay(
+					Capsule()
+						.strokeBorder(
+							LinearGradient(
+								colors: [.blue.opacity(0.35), .orange.opacity(0.25)],
+								startPoint: .leading,
+								endPoint: .trailing
+							),
+							lineWidth: 1
+						)
+				)
+				.shadow(color: isComplete ? .blue.opacity(0.3) : .clear, radius: 12, y: 5)
 			}
+			.animation(.spring(response: 0.35), value: isComplete)
 		}
 	}
 	

@@ -6,6 +6,7 @@ import SwiftUI
 struct ResultsView: View {
 	
 		// MARK: - Properties
+	@Binding var path: NavigationPath // 1. Add Binding
 	
 		/// Raw labels passed instantly from the ScannerView to avoid camera-to-result lag.
 	let rawDetectedLabels: [String]
@@ -87,11 +88,14 @@ struct ResultsView: View {
 			}
 		}
 		.navigationDestination(isPresented: $navigateToQuiz) {
-				// FIX 2: Snapshot selectedObjects at navigation time so the quiz
-				// always receives the correct set, even if state mutates after.
-			QuizSessionView(objects: Array(selectedObjects).sorted())
-				.id(selectedObjects)
+			QuizSessionView(path: $path, objects: Array(selectedObjects).sorted())
 		}
+//		.navigationDestination(isPresented: $navigateToQuiz) {
+//				// FIX 2: Snapshot selectedObjects at navigation time so the quiz
+//				// always receives the correct set, even if state mutates after.
+//			QuizSessionView(objects: Array(selectedObjects).sorted())
+//				.id(selectedObjects)
+//		}
 		.sheet(isPresented: $showHelp) {
 			ResultsInstructionsSheet()
 		}
@@ -168,13 +172,6 @@ private extension ResultsView {
 				Color(.secondarySystemBackground),
 				in: RoundedRectangle(cornerRadius: 14)
 			)
-				// FIX 3: Only set focus if not already focused — eliminates the
-				// first-tap delay caused by redundant focus state toggling.
-			.onTapGesture {
-				if !isTextFieldFocused {
-					isTextFieldFocused = true
-				}
-			}
 			
 				// Animated "Add" Button
 			if !newObjectText.isEmpty {
@@ -228,13 +225,12 @@ private extension ResultsView {
 				.font(.headline)
 				.frame(maxWidth: .infinity)
 				.padding(.vertical, 18)
-				// FIX 4: Use canStart computed property consistently
-				// in both background and disabled modifier.
 				.background(canStart ? Color.blue : Color.gray)
 				.foregroundColor(.white)
 				.clipShape(Capsule())
 		}
 		.disabled(!canStart)
+		.padding(.horizontal, 15)
 	}
 	
 	var emptyStateContent: some View {
@@ -340,37 +336,46 @@ private extension ResultsView {
 	//
 
 struct ResultsInstructionsSheet: View {
-	
 	@Environment(\.dismiss) private var dismiss
 	
 	var body: some View {
-		
 		NavigationStack {
-			
 			List {
-				
-				Section("Review your objects") {
+				Section("Finalize Your List") {
+					InstructionRow(
+						icon: "checkmark.circle.fill",
+						color: .green,
+						title: "Select Objects",
+						detail: "Tap items to include them in your hunt. Only selected items will be used."
+					)
 					
-					Label("Tap items to include or exclude them.", systemImage: "checkmark.circle")
+					InstructionRow(
+						icon: "plus.circle.fill",
+						color: .blue,
+						title: "Manual Add",
+						detail: "If the camera missed something, type it in manually at the top."
+					)
 					
-					Label("Add missing objects that were not detected manually.", systemImage: "plus.circle")
-					
-					Label("Only selected items will appear in your scavenger hunt.", systemImage: "target")
+					InstructionRow(
+						icon: "play.fill",
+						color: .orange,
+						title: "Ready to Play",
+						detail: "Once your list is perfect, tap 'Start' to begin your scavenger hunt."
+					)
+				}
 				}
 			}
-			.navigationTitle("About Reviewing")
+			.navigationTitle("Review Guide")
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar {
-				
-				ToolbarItem(placement: .cancellationAction) {
-					
+				ToolbarItem(placement: .confirmationAction) {
 					Button {
 						dismiss()
-					} label: {
+					} label : {
 						Image(systemName: "xmark")
 					}
+						.fontWeight(.semibold)
 				}
 			}
 		}
 	}
-}

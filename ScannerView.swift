@@ -3,6 +3,7 @@ import Vision
 
 @available(iOS 26.0, *)
 struct ScannerView: View {
+	@Binding var path: NavigationPath // 1. Add Binding
 	@StateObject private var cameraService = CameraService()
 	@State private var detector = ObjectDetector()
 	
@@ -12,7 +13,7 @@ struct ScannerView: View {
 	@State private var showHelp = false
 	
 	var body: some View {
-		NavigationStack {
+//		NavigationStack {
 			ZStack {
 				CameraPreview(session: cameraService.session)
 					.ignoresSafeArea()
@@ -26,6 +27,7 @@ struct ScannerView: View {
 					bottomActionCard
 				}
 			}
+			.preferredColorScheme(ColorScheme.dark)
 			.navigationTitle("Environment Scan")
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbarBackground(.ultraThinMaterial, for: .navigationBar)
@@ -38,15 +40,18 @@ struct ScannerView: View {
 				}
 			}
 			.navigationDestination(isPresented: $navigateToResults) {
-				ResultsView(rawDetectedLabels: rawLabelsToFilter)
-					.onAppear {
-						cameraService.stop()   // HARD STOP camera
-					}
+				ResultsView(path: $path, rawDetectedLabels: rawLabelsToFilter)
 			}
+//			.navigationDestination(isPresented: $navigateToResults) {
+//				ResultsView(rawDetectedLabels: rawLabelsToFilter)
+//					.onAppear {
+//						cameraService.stop()   // HARD STOP camera
+//					}
+//			}
 			.sheet(isPresented: $showHelp) {
 				ScannerInstructionsSheet()
 			}
-		}
+//		}
 		.onAppear { startDetection() }
 		.onDisappear { cameraService.stop() }
 	}
@@ -80,7 +85,7 @@ private extension ScannerView {
 			HStack(spacing: 8) {
 				
 				Image(systemName: scanningSymbols[symbolIndex])
-					.foregroundStyle(.primary)
+					.foregroundStyle(.white)
 					.symbolEffect(.pulse, options: .repeating)
 					.contentTransition(.symbolEffect(.replace))
 					.animation(
@@ -88,9 +93,9 @@ private extension ScannerView {
 						value: symbolIndex
 					)
 				
-				Text("Analyzing Space...")
+				Text("Scanning Space...")
 					.font(.caption.weight(.semibold))
-					.foregroundStyle(.primary)
+					.foregroundStyle(.white)
 			}
 			.padding(.horizontal, 14)
 			.padding(.vertical, 8)
@@ -108,16 +113,16 @@ private extension ScannerView {
 		VStack(spacing: 20) {
 			
 			VStack(spacing: 4) {
-				Text(seenObjects.count < 10 ? "Keep exploring..." : "Looking good.")
+				Text("Scan different objects around you")
 					.font(.subheadline.bold())
-					.foregroundStyle(.primary)
+					.foregroundStyle(.white)
 				
-				Text("Walk around and try different angles for better results.")
+				Text("Point the camera at one object at a time and from multiple angles.")
 					.font(.caption)
 					.foregroundStyle(.secondary)
 			}
 			.multilineTextAlignment(.center)
-			.padding(.horizontal, 20)
+			.padding(.horizontal, 15)
 			.padding(.vertical, 14)
 			.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
 			
@@ -134,17 +139,17 @@ private extension ScannerView {
 				// Primary action button
 			Button(action: stopScanAndProceed) {
 				HStack {
-					Text(seenObjects.count < 3 ? "Still Looking..." : "Done Exploring")
+					Text("Finish Scan ")
 						.font(.headline)
 					Image(systemName: "arrow.right.circle.fill")
 				}
 				.frame(maxWidth: .infinity)
 				.padding(.vertical, 18)
-				.background(seenObjects.count < 3 ? Color.secondary.opacity(0.5) : Color.blue)
+				.background(seenObjects.count < 7 ? Color.secondary.opacity(0.5) : Color.blue)
 				.foregroundColor(.white)
 				.clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
 			}
-			.disabled(seenObjects.count < 1)
+			.disabled(seenObjects.count < 7)
 			.padding(.horizontal, 24)
 		}
 		.padding(.bottom, 34)
@@ -186,24 +191,26 @@ struct ScannerInstructionsSheet: View {
 	var body: some View {
 		NavigationStack {
 			List {
-				Section("Scanning Tips") {
+				Section("Quick Start Guide") {
 					InstructionRow(
-						icon: "sun.max.fill",
-						color: .orange,
-						title: "Prioritise Good Lighting",
-						detail: "Well-lit environments significantly improve detection accuracy. Natural light works best."
-					)
-					InstructionRow(
-						icon: "camera.viewfinder",
+						icon: "viewfinder",
 						color: .blue,
-						title: "Vary Your Angles",
-						detail: "Move around the object. Top-down, diagonal, and side views each provide different visual context."
+						title: "Focus & Light",
+						detail: "Center single, well-lit objects. Avoid cluttered backgrounds for better detection."
 					)
+					
 					InstructionRow(
-						icon: "cube.box.fill",
+						icon: "arrow.triangle.2.circlepath",
 						color: .purple,
-						title: "Scan Multiple Objects",
-						detail: "Aim for five to seven distinct objects to build a well-rounded and engaging session."
+						title: "Move for Angles",
+						detail: "Scan from multiple angles and aim for 5–7 items for best experience."
+					)
+					
+					InstructionRow(
+						icon: "checkmark.circle.fill",
+						color: .green,
+						title: "Finish to Save",
+						detail: "Once you've captured your objects, tap 'Finish Scan' to move ahead."
 					)
 				}
 			}
@@ -211,9 +218,12 @@ struct ScannerInstructionsSheet: View {
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
-					Button { dismiss() } label: {
+					Button {
+						dismiss()
+					} label : {
 						Image(systemName: "xmark")
 					}
+						.fontWeight(.semibold)
 				}
 			}
 		}

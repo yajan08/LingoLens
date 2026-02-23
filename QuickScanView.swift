@@ -64,6 +64,7 @@ struct QuickScanView: View {
 				analysisOverlay
 			}
 		}
+		.preferredColorScheme(ColorScheme.dark)
 		.navigationBarTitleDisplayMode(.inline)
 		.toolbarBackground(.ultraThinMaterial, for: .navigationBar)
 		.toolbarColorScheme(.dark, for: .navigationBar)
@@ -163,7 +164,7 @@ private extension QuickScanView {
 	var tapToIdentifyHint: some View {
 		HStack(spacing: 10) {
 			Image(systemName: "hand.tap.fill")
-			Text("Tap to identify")
+			Text("Tap anywhere to identify")
 		}
 		.font(.subheadline.bold())
 		.foregroundColor(.white)
@@ -174,13 +175,32 @@ private extension QuickScanView {
 	}
 	
 	var emptyStateToast: some View {
-		Text("No objects found. Try another angle.")
-			.font(.caption.bold())
-			.foregroundStyle(.white)
-			.padding(.horizontal, 16)
-			.padding(.vertical, 10)
-			.background(.ultraThinMaterial, in: Capsule())
+		HStack(spacing: 8) {
+			Image(systemName: "xmark.circle.fill")
+				.foregroundStyle(.red)
+			
+			Text("No objects found. Try another angle.")
+				.font(.caption.bold())
+				.foregroundStyle(.white)
+		}
+		.padding(.horizontal, 16)
+		.padding(.vertical, 10)
+		.background(.ultraThinMaterial, in: Capsule())
+			// Optional: add a subtle border to make it pop against dark backgrounds
+		.overlay(
+			Capsule()
+				.stroke(.white.opacity(0.1), lineWidth: 0.5)
+		)
 	}
+	
+//	var emptyStateToast: some View {
+//		Text("No objects found. Try another angle.")
+//			.font(.caption.bold())
+//			.foregroundStyle(.white)
+//			.padding(.horizontal, 16)
+//			.padding(.vertical, 10)
+//			.background(.ultraThinMaterial, in: Capsule())
+//	}
 	
 	var bottomActionArea: some View {
 		VStack {
@@ -298,6 +318,7 @@ private extension QuickScanView {
 
 	// MARK: - Word Detail Sheet
 
+
 @available(iOS 26.0, *)
 struct WordDetailSheet: View {
 	
@@ -311,78 +332,157 @@ struct WordDetailSheet: View {
 	
 	private let speech = SpeechService.shared
 	
+	func display(_ raw: String) -> String {
+		raw.replacingOccurrences(of: "_", with: " ")
+	}
+	
 	var body: some View {
 		NavigationStack {
 			VStack(spacing: 0) {
 				
-					// Word hero section
-				VStack(spacing: 12) {
-					VStack(spacing: 6) {
-						
-							// Translated word + speak button embedded in background
-						HStack(spacing: 0) {
-							Text(result.translatedWord.capitalized)
-								.font(.system(size: 42, weight: .bold, design: .rounded))
+					// Hero (IDENTICAL STYLE TO WORD HINT)
+				ZStack {
+					LinearGradient(
+						colors: [Color.blue.opacity(0.09), Color.orange.opacity(0.06)],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+					
+					VStack(spacing: 8) {
+						HStack(spacing: 8) {
+							Text(display(result.translatedWord).capitalized)
+								.font(.system(size: 40, weight: .bold, design: .rounded))
 								.foregroundStyle(.primary)
 							
-							Spacer()
-							
 							Button {
-								speech.speak(result.translatedWord)
+								speech.speak(display(result.translatedWord))
 							} label: {
 								Image(systemName: "speaker.wave.2.fill")
 									.font(.system(size: 16, weight: .semibold))
-									.foregroundStyle(
-										LinearGradient(
-											colors: [.orange, .blue],
-											startPoint: .topLeading,
-											endPoint: .bottomTrailing
-										)
-									)
-									.padding(10)
-									.background(.ultraThinMaterial, in: Circle())
-									.overlay(
-										Circle().stroke(
-											LinearGradient(
-												colors: [Color.orange.opacity(0.5), Color.blue.opacity(0.4)],
-												startPoint: .topLeading,
-												endPoint: .bottomTrailing
-											),
-											lineWidth: 1
-										)
-									)
+									.symbolRenderingMode(.hierarchical)
+									.foregroundStyle(.secondary)
 							}
 						}
-						.padding(.horizontal, 24)
 						
 						HStack(spacing: 6) {
-							Image(systemName: "globe")
+							Image(systemName: "arrow.left.arrow.right")
 								.font(.caption)
 								.foregroundStyle(.tertiary)
 							
-							Text(result.correctEnglish.capitalized)
-								.font(.system(.subheadline, design: .rounded))
+							Text(display(result.correctEnglish).capitalized)
+								.font(.system(.title3, design: .rounded))
 								.foregroundStyle(.secondary)
 						}
-						.frame(maxWidth: .infinity, alignment: .leading)
-						.padding(.horizontal, 24)
 					}
+					.padding(.vertical, 36)
 				}
-				.frame(maxWidth: .infinity)
-				.padding(.vertical, 36)
-				.background(.ultraThinMaterial)
 				
-					// Sentence section
-				Group {
-					if isLoading {
-						sentenceLoadingView
-					} else if let sentence {
-						sentenceView(sentence)
-					} else {
-						sentenceErrorView
+				ScrollView {
+					VStack(spacing: 12) {
+						
+						if isLoading {
+							
+							VStack(spacing: 14) {
+								ProgressView().controlSize(.regular)
+								Text("Generating example sentence...")
+									.font(.system(.subheadline, design: .rounded))
+									.foregroundStyle(.secondary)
+							}
+							.frame(maxWidth: .infinity)
+							.padding(.top, 48)
+							
+						} else if let s = sentence {
+							
+							VStack(spacing: 12) {
+								
+								HStack {
+									Image(systemName: "text.quote")
+										.foregroundStyle(.blue)
+									
+									Text("Example Sentence")
+										.font(.system(.subheadline, design: .rounded).bold())
+										.foregroundStyle(.secondary)
+									
+									Spacer()
+									
+									Button {
+										speech.speak(s.translated)
+									} label: {
+										Image(systemName: "speaker.wave.2.fill")
+											.font(.system(size: 14, weight: .semibold))
+											.symbolRenderingMode(.hierarchical)
+											.foregroundStyle(.secondary)
+									}
+								}
+								
+									// Translated card (IDENTICAL STYLE)
+								VStack(alignment: .leading, spacing: 6) {
+									Label("Translated", systemImage: "character.bubble.fill")
+										.font(.system(size: 11, weight: .bold))
+										.foregroundStyle(.blue)
+									
+									Text(s.translated)
+										.font(.system(.body, design: .rounded).weight(.medium))
+										.foregroundStyle(.primary)
+										.fixedSize(horizontal: false, vertical: true)
+								}
+								.frame(maxWidth: .infinity, alignment: .leading)
+								.padding(14)
+								.background(
+									Color.blue.opacity(0.07),
+									in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+								)
+								.overlay(
+									RoundedRectangle(cornerRadius: 14, style: .continuous)
+										.strokeBorder(Color.blue.opacity(0.14), lineWidth: 1)
+								)
+								
+									// English card (IDENTICAL STYLE)
+								VStack(alignment: .leading, spacing: 6) {
+									Label("English", systemImage: "textformat.abc")
+										.font(.system(size: 11, weight: .bold))
+										.foregroundStyle(.orange)
+									
+									Text(s.english)
+										.font(.system(.body, design: .rounded))
+										.foregroundStyle(.secondary)
+										.fixedSize(horizontal: false, vertical: true)
+								}
+								.frame(maxWidth: .infinity, alignment: .leading)
+								.padding(14)
+								.background(
+									Color.orange.opacity(0.06),
+									in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+								)
+								.overlay(
+									RoundedRectangle(cornerRadius: 14, style: .continuous)
+										.strokeBorder(Color.orange.opacity(0.14), lineWidth: 1)
+								)
+							}
+							.padding(20)
+							
+						} else {
+							
+							VStack(spacing: 10) {
+								Image(systemName: "text.bubble")
+									.font(.system(size: 28))
+									.foregroundStyle(.secondary)
+								
+								Text("No example available")
+									.font(.system(.subheadline, design: .rounded).bold())
+									.foregroundStyle(.secondary)
+								
+								Text("Try again later to load an example sentence.")
+									.font(.system(.caption, design: .rounded))
+									.foregroundStyle(.tertiary)
+									.multilineTextAlignment(.center)
+							}
+							.frame(maxWidth: .infinity)
+							.padding(.top, 48)
+							.padding(.horizontal, 32)
+						}
 					}
 				}
-				.padding(24)
 				
 				Spacer()
 			}
@@ -390,9 +490,7 @@ struct WordDetailSheet: View {
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
-					Button {
-						dismiss()
-					} label: {
+					Button { dismiss() } label: {
 						Image(systemName: "xmark")
 					}
 				}
@@ -403,133 +501,238 @@ struct WordDetailSheet: View {
 			isLoading = false
 		}
 	}
-	
-	func sentenceView(_ s: FoundationAIService.BilingualSentence) -> some View {
-		VStack(spacing: 16) {
-			
-			HStack {
-				Image(systemName: "text.quote")
-					.foregroundStyle(
-						LinearGradient(colors: [.orange, .blue], startPoint: .leading, endPoint: .trailing)
-					)
-				
-				Text("Example Sentence")
-					.font(.system(.subheadline, design: .rounded).bold())
-					.foregroundStyle(.secondary)
-				
-				Spacer()
-			}
-			
-				// Translated sentence card with speak inside
-			VStack(alignment: .leading, spacing: 10) {
-				
-				HStack(alignment: .top) {
-					Label("Translated", systemImage: "character.bubble.fill")
-						.font(.system(size: 11, weight: .bold))
-						.foregroundStyle(.orange)
-					
-					Spacer()
-					
-					Button {
-						speech.speak(s.translated)
-					} label: {
-						Image(systemName: "speaker.wave.2.fill")
-							.font(.system(size: 13, weight: .semibold))
-							.foregroundStyle(
-								LinearGradient(
-									colors: [.orange, .blue],
-									startPoint: .topLeading,
-									endPoint: .bottomTrailing
-								)
-							)
-							.padding(8)
-							.background(.ultraThinMaterial, in: Circle())
-							.overlay(
-								Circle().stroke(
-									LinearGradient(
-										colors: [Color.orange.opacity(0.5), Color.blue.opacity(0.4)],
-										startPoint: .topLeading,
-										endPoint: .bottomTrailing
-									),
-									lineWidth: 1
-								)
-							)
-					}
-				}
-				
-				Text(s.translated)
-					.font(.system(.body, design: .rounded).weight(.medium))
-					.foregroundStyle(.primary)
-					.fixedSize(horizontal: false, vertical: true)
-			}
-			.frame(maxWidth: .infinity, alignment: .leading)
-			.padding(16)
-			.background(
-				LinearGradient(
-					colors: [Color.orange.opacity(0.08), Color.blue.opacity(0.08)],
-					startPoint: .topLeading,
-					endPoint: .bottomTrailing
-				),
-				in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-			)
-			.overlay(
-				RoundedRectangle(cornerRadius: 16, style: .continuous)
-					.stroke(
-						LinearGradient(
-							colors: [Color.orange.opacity(0.3), Color.blue.opacity(0.25)],
-							startPoint: .topLeading,
-							endPoint: .bottomTrailing
-						),
-						lineWidth: 1
-					)
-			)
-			
-				// English sentence card
-			VStack(alignment: .leading, spacing: 8) {
-				
-				Label("English", systemImage: "textformat.abc")
-					.font(.system(size: 11, weight: .bold))
-					.foregroundStyle(.secondary)
-				
-				Text(s.english)
-					.font(.system(.body, design: .rounded))
-					.foregroundStyle(.secondary)
-					.fixedSize(horizontal: false, vertical: true)
-			}
-			.frame(maxWidth: .infinity, alignment: .leading)
-			.padding(16)
-			.background(
-				Color(.secondarySystemBackground),
-				in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-			)
-		}
-	}
-	
-	var sentenceLoadingView: some View {
-		VStack(spacing: 14) {
-			ProgressView()
-				.controlSize(.regular)
-			Text("Generating example sentence...")
-				.font(.system(.subheadline, design: .rounded))
-				.foregroundStyle(.secondary)
-		}
-		.frame(maxWidth: .infinity)
-		.padding(.top, 32)
-	}
-	
-	var sentenceErrorView: some View {
-		VStack(spacing: 10) {
-			Image(systemName: "exclamationmark.circle")
-				.font(.system(size: 32))
-				.foregroundStyle(.secondary)
-			Text("Couldn't load an example sentence.")
-				.font(.subheadline)
-				.foregroundStyle(.secondary)
-		}
-		.frame(maxWidth: .infinity)
-		.padding(.top, 32)
-	}
 }
+//struct WordDetailSheet: View {
+//	
+//	let result: FoundationAIService.QuizResult
+//	let aiService: FoundationAIService
+//	
+//	@Environment(\.dismiss) private var dismiss
+//	
+//	@State private var sentence: FoundationAIService.BilingualSentence? = nil
+//	@State private var isLoading = true
+//	
+//	private let speech = SpeechService.shared
+//	
+//	var body: some View {
+//		NavigationStack {
+//			VStack(spacing: 0) {
+//				
+//					// Word hero section
+//				VStack(spacing: 12) {
+//					VStack(spacing: 6) {
+//						
+//							// Translated word + speak button embedded in background
+//						HStack(spacing: 0) {
+//							Text(result.translatedWord.capitalized)
+//								.font(.system(size: 42, weight: .bold, design: .rounded))
+//								.foregroundStyle(.primary)
+//							
+//							Spacer()
+//							
+//							Button {
+//								speech.speak(result.translatedWord)
+//							} label: {
+//								Image(systemName: "speaker.wave.2.fill")
+//									.font(.system(size: 16, weight: .semibold))
+//									.foregroundStyle(
+//										LinearGradient(
+//											colors: [.orange, .blue],
+//											startPoint: .topLeading,
+//											endPoint: .bottomTrailing
+//										)
+//									)
+//									.padding(10)
+//									.background(.ultraThinMaterial, in: Circle())
+//									.overlay(
+//										Circle().stroke(
+//											LinearGradient(
+//												colors: [Color.orange.opacity(0.5), Color.blue.opacity(0.4)],
+//												startPoint: .topLeading,
+//												endPoint: .bottomTrailing
+//											),
+//											lineWidth: 1
+//										)
+//									)
+//							}
+//						}
+//						.padding(.horizontal, 24)
+//						
+//						HStack(spacing: 6) {
+//							Image(systemName: "globe")
+//								.font(.caption)
+//								.foregroundStyle(.tertiary)
+//							
+//							Text(result.correctEnglish.capitalized)
+//								.font(.system(.subheadline, design: .rounded))
+//								.foregroundStyle(.secondary)
+//						}
+//						.frame(maxWidth: .infinity, alignment: .leading)
+//						.padding(.horizontal, 24)
+//					}
+//				}
+//				.frame(maxWidth: .infinity)
+//				.padding(.vertical, 36)
+//				.background(.ultraThinMaterial)
+//				
+//					// Sentence section
+//				Group {
+//					if isLoading {
+//						sentenceLoadingView
+//					} else if let sentence {
+//						sentenceView(sentence)
+//					} else {
+//						sentenceErrorView
+//					}
+//				}
+//				.padding(24)
+//				
+//				Spacer()
+//			}
+//			.navigationTitle("Word Details")
+//			.navigationBarTitleDisplayMode(.inline)
+//			.toolbar {
+//				ToolbarItem(placement: .cancellationAction) {
+//					Button {
+//						dismiss()
+//					} label: {
+//						Image(systemName: "xmark")
+//					}
+//				}
+//			}
+//		}
+//		.task {
+//			sentence = await aiService.generateBilingualSentence(for: result.correctEnglish)
+//			isLoading = false
+//		}
+//	}
+//	
+//	func sentenceView(_ s: FoundationAIService.BilingualSentence) -> some View {
+//		VStack(spacing: 16) {
+//			
+//			HStack {
+//				Image(systemName: "text.quote")
+//					.foregroundStyle(
+//						LinearGradient(colors: [.orange, .blue], startPoint: .leading, endPoint: .trailing)
+//					)
+//				
+//				Text("Example Sentence")
+//					.font(.system(.subheadline, design: .rounded).bold())
+//					.foregroundStyle(.secondary)
+//				
+//				Spacer()
+//			}
+//			
+//				// Translated sentence card with speak inside
+//			VStack(alignment: .leading, spacing: 10) {
+//				
+//				HStack(alignment: .top) {
+//					Label("Translated", systemImage: "character.bubble.fill")
+//						.font(.system(size: 11, weight: .bold))
+//						.foregroundStyle(.orange)
+//					
+//					Spacer()
+//					
+//					Button {
+//						speech.speak(s.translated)
+//					} label: {
+//						Image(systemName: "speaker.wave.2.fill")
+//							.font(.system(size: 13, weight: .semibold))
+//							.foregroundStyle(
+//								LinearGradient(
+//									colors: [.orange, .blue],
+//									startPoint: .topLeading,
+//									endPoint: .bottomTrailing
+//								)
+//							)
+//							.padding(8)
+//							.background(.ultraThinMaterial, in: Circle())
+//							.overlay(
+//								Circle().stroke(
+//									LinearGradient(
+//										colors: [Color.orange.opacity(0.5), Color.blue.opacity(0.4)],
+//										startPoint: .topLeading,
+//										endPoint: .bottomTrailing
+//									),
+//									lineWidth: 1
+//								)
+//							)
+//					}
+//				}
+//				
+//				Text(s.translated)
+//					.font(.system(.body, design: .rounded).weight(.medium))
+//					.foregroundStyle(.primary)
+//					.fixedSize(horizontal: false, vertical: true)
+//			}
+//			.frame(maxWidth: .infinity, alignment: .leading)
+//			.padding(16)
+//			.background(
+//				LinearGradient(
+//					colors: [Color.orange.opacity(0.08), Color.blue.opacity(0.08)],
+//					startPoint: .topLeading,
+//					endPoint: .bottomTrailing
+//				),
+//				in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+//			)
+//			.overlay(
+//				RoundedRectangle(cornerRadius: 16, style: .continuous)
+//					.stroke(
+//						LinearGradient(
+//							colors: [Color.orange.opacity(0.3), Color.blue.opacity(0.25)],
+//							startPoint: .topLeading,
+//							endPoint: .bottomTrailing
+//						),
+//						lineWidth: 1
+//					)
+//			)
+//			
+//				// English sentence card
+//			VStack(alignment: .leading, spacing: 8) {
+//				
+//				Label("English", systemImage: "textformat.abc")
+//					.font(.system(size: 11, weight: .bold))
+//					.foregroundStyle(.secondary)
+//				
+//				Text(s.english)
+//					.font(.system(.body, design: .rounded))
+//					.foregroundStyle(.secondary)
+//					.fixedSize(horizontal: false, vertical: true)
+//			}
+//			.frame(maxWidth: .infinity, alignment: .leading)
+//			.padding(16)
+//			.background(
+//				Color(.secondarySystemBackground),
+//				in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+//			)
+//		}
+//	}
+//	
+//	var sentenceLoadingView: some View {
+//		VStack(spacing: 14) {
+//			ProgressView()
+//				.controlSize(.regular)
+//			Text("Generating example sentence...")
+//				.font(.system(.subheadline, design: .rounded))
+//				.foregroundStyle(.secondary)
+//		}
+//		.frame(maxWidth: .infinity)
+//		.padding(.top, 32)
+//	}
+//	
+//	var sentenceErrorView: some View {
+//		VStack(spacing: 10) {
+//			Image(systemName: "exclamationmark.circle")
+//				.font(.system(size: 32))
+//				.foregroundStyle(.secondary)
+//			Text("Couldn't load an example sentence.")
+//				.font(.subheadline)
+//				.foregroundStyle(.secondary)
+//		}
+//		.frame(maxWidth: .infinity)
+//		.padding(.top, 32)
+//	}
+//}
 
 	// MARK: - Instructions (untouched)
 struct QuickScanInstructionsSheet: View {
@@ -538,43 +741,39 @@ struct QuickScanInstructionsSheet: View {
 	var body: some View {
 		NavigationStack {
 			List {
-				Section("Getting Started") {
-					InstructionRow(
-						icon: "hand.tap.fill",
-						color: .blue,
-						title: "Tap to Identify",
-						detail: "Tap anywhere on the screen to instantly identify and translate every object in view."
-					)
+				Section("Scanner Guide") {
 					InstructionRow(
 						icon: "sun.max.fill",
 						color: .orange,
-						title: "Light it Up",
-						detail: "Good lighting makes a big difference. Scan in a well-lit space and stay 2–3 feet from your objects."
+						title: "Bright Lighting",
+						detail: "Scan in well-lit areas. Natural light ensures the fastest and most accurate detection."
 					)
-				}
-				
-				Section("Better Accuracy") {
+					
 					InstructionRow(
-						icon: "move.3d",
+						icon: "arrow.up.and.down.and.arrow.left.and.right",
+						color: .blue,
+						title: "Stay 2–3 Feet Away",
+						detail: "Don't get too close. Keeping a short distance helps the AI see the entire object."
+					)
+					
+					InstructionRow(
+						icon: "camera.viewfinder",
 						color: .purple,
-						title: "Angle it Right",
-						detail: "A 45° diagonal view usually works best. If something isn't recognised, try shifting your perspective — top, side, and diagonal views each reveal different details."
-					)
-					InstructionRow(
-						icon: "sparkles",
-						color: .indigo,
-						title: "One at a Time",
-						detail: "For the most accurate results, centre one object in the frame before tapping. Less clutter means sharper identification."
+						title: "Capture Better Angles",
+						detail: "Try multiple angles, center one object at a time and avoid cluttered backgrounds."
 					)
 				}
 			}
-			.navigationTitle("How to Scan")
+			.navigationTitle("Quick Scan Guide")
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar {
-				ToolbarItem(placement: .cancellationAction) {
-					Button { dismiss() } label: {
+				ToolbarItem(placement: .confirmationAction) {
+					Button {
+						dismiss()
+					} label : {
 						Image(systemName: "xmark")
 					}
+						.fontWeight(.semibold)
 				}
 			}
 		}

@@ -29,10 +29,3 @@ enum AppLanguage: String, CaseIterable, Identifiable, Codable {
 		}
 	}
 }
-
-enum AppRoute: Hashable {
-	case quickScan
-	case scavengerHunt
-	case results(labels: [String])
-	case quizSession(selectedLabels: [String])
-}

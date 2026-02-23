@@ -35,6 +35,11 @@ struct ContentView: View {
 			}
 			.navigationTitle("LingoLens")
 			.background(Color(.systemGroupedBackground))
+			.navigationDestination(for: String.self) { value in
+				if value == "start_hunt" {
+					ScannerView(path: $navigationPath)
+				}
+			}
 			.sheet(item: $activeInfoType) { type in
 				LingoInfoSheet(type: type, selectedLanguage: selectedLanguage)
 			}
@@ -80,7 +85,7 @@ private extension ContentView {
 				
 				VStack(alignment: .leading, spacing: 0) {
 					Text("CURRENTLY LEARNING")
-						.font(.system(size: 10, weight: .heavy))
+						.font(.system(size: 9, weight: .heavy))
 						.foregroundStyle(.secondary)
 					Text(selectedLanguage.displayName)
 						.font(.title3.bold())
@@ -176,8 +181,8 @@ private extension ContentView {
 					.foregroundColor(.white)
 					.clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
 			}
-			
-			NavigationLink(destination: ScannerView()) {
+			NavigationLink(value: "start_hunt") {
+//			NavigationLink(destination: ScannerView()) {
 				Label("Start Hunt", systemImage: "flag.checkered")
 					.font(.headline)
 					.frame(maxWidth: .infinity)
@@ -258,17 +263,19 @@ struct LingoInfoSheet: View {
 					VStack(spacing: 0) {
 						if type == .quickScan {
 							InstructionDetailRow(
-								icon: "camera.viewfinder",
-								color: .blue,
-								title: "Explore Your Space",
-								detail: "Point your camera at objects. LingoLens detects and labels items that are visible in the frame."
+								icon: "bolt.fill",
+								color: .yellow,
+								title: "Instant Detection",
+								detail: "Point your camera at any object and tap on screen to see its name and \(selectedLanguage.displayName) translation instantly."
 							)
-							Divider().padding(.leading, 72)
+							
+							Divider().padding(.leading, 56)
+							
 							InstructionDetailRow(
-								icon: "sparkles.rectangle.stack.fill",
-								color: .blue,
-								title: "Instant Vocabulary",
-								detail: "Bridge the gap between seeing an object and knowing its name. Perfect for rapid-fire visual learning."
+								icon: "hand.tap",
+								color: .purple,
+								title: "Freeze & Focus",
+								detail: "Tap any detected label to know more about it or hear the pronunciation."
 							)
 						} else {
 							InstructionDetailRow(
@@ -277,26 +284,26 @@ struct LingoInfoSheet: View {
 								title: "1. Scan & Extract",
 								detail: "Move around your environment. LingoLens intelligently identifies all visible objects."
 							)
-							Divider().padding(.leading, 72)
+							Divider().padding(.leading, 56)
 							InstructionDetailRow(
 								icon: "slider.horizontal.3",
 								color: .orange,
 								title: "2. Refine Your List",
-								detail: "Review extracted items. Manually remove objects or add custom challenges to tailor your experience."
+								detail: "Review extracted items. Manually remove or add objects to tailor your experience."
 							)
-							Divider().padding(.leading, 72)
+							Divider().padding(.leading, 56)
 							InstructionDetailRow(
 								icon: "character.bubble.fill",
 								color: .orange,
 								title: "3. The Language Test",
 								detail: "The hunt begins! You'll be prompted with names in \(selectedLanguage.displayName). You must recall the object."
 							)
-							Divider().padding(.leading, 72)
+							Divider().padding(.leading, 56)
 							InstructionDetailRow(
 								icon: "target",
 								color: .orange,
 								title: "4. Verify & Win",
-								detail: "Physically find and scan the object. Once recognized, the challenge is complete!"
+								detail: "Physically find and scan the objects. Once recognized, the challenge is complete!"
 							)
 						}
 					}
@@ -308,8 +315,12 @@ struct LingoInfoSheet: View {
 			.background(Color(.systemGroupedBackground))
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar {
-				ToolbarItem(placement: .confirmationAction) {
-					Button("Done") { dismiss() }
+				ToolbarItem(placement: .cancellationAction) {
+					Button {
+						dismiss()
+					} label : {
+						Image(systemName: "xmark")
+					}
 						.fontWeight(.bold)
 				}
 			}
@@ -348,5 +359,4 @@ struct InstructionDetailRow: View {
 		.padding(.horizontal, 20)
 	}
 }
-
 
