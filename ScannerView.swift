@@ -42,12 +42,6 @@ struct ScannerView: View {
 			.navigationDestination(isPresented: $navigateToResults) {
 				ResultsView(path: $path, rawDetectedLabels: rawLabelsToFilter)
 			}
-//			.navigationDestination(isPresented: $navigateToResults) {
-//				ResultsView(rawDetectedLabels: rawLabelsToFilter)
-//					.onAppear {
-//						cameraService.stop()   // HARD STOP camera
-//					}
-//			}
 			.sheet(isPresented: $showHelp) {
 				ScannerInstructionsSheet()
 			}

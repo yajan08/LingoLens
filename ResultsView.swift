@@ -90,12 +90,6 @@ struct ResultsView: View {
 		.navigationDestination(isPresented: $navigateToQuiz) {
 			QuizSessionView(path: $path, objects: Array(selectedObjects).sorted())
 		}
-//		.navigationDestination(isPresented: $navigateToQuiz) {
-//				// FIX 2: Snapshot selectedObjects at navigation time so the quiz
-//				// always receives the correct set, even if state mutates after.
-//			QuizSessionView(objects: Array(selectedObjects).sorted())
-//				.id(selectedObjects)
-//		}
 		.sheet(isPresented: $showHelp) {
 			ResultsInstructionsSheet()
 		}
