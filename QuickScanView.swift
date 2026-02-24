@@ -358,14 +358,14 @@ struct WordDetailSheet: View {
 								speech.speak(display(result.translatedWord))
 							} label: {
 								Image(systemName: "speaker.wave.2.fill")
-									.font(.system(size: 16, weight: .semibold))
+									.font(.system(size: 20, weight: .semibold))
 									.symbolRenderingMode(.hierarchical)
 									.foregroundStyle(.secondary)
 							}
 						}
 						
 						HStack(spacing: 6) {
-							Image(systemName: "arrow.left.arrow.right")
+							Image(systemName: "text.quote")
 								.font(.caption)
 								.foregroundStyle(.tertiary)
 							
@@ -396,7 +396,7 @@ struct WordDetailSheet: View {
 							VStack(spacing: 12) {
 								
 								HStack {
-									Image(systemName: "text.quote")
+									Image(systemName: "translate")
 										.foregroundStyle(.blue)
 									
 									Text("Example Sentence")
@@ -405,26 +405,39 @@ struct WordDetailSheet: View {
 									
 									Spacer()
 									
-									Button {
-										speech.speak(s.translated)
-									} label: {
-										Image(systemName: "speaker.wave.2.fill")
-											.font(.system(size: 14, weight: .semibold))
-											.symbolRenderingMode(.hierarchical)
-											.foregroundStyle(.secondary)
-									}
+//									Button {
+//										speech.speak(s.translated)
+//									} label: {
+//										Image(systemName: "speaker.wave.2.fill")
+//											.font(.system(size: 14, weight: .semibold))
+//											.symbolRenderingMode(.hierarchical)
+//											.foregroundStyle(.secondary)
+//									}
 								}
 								
 									// Translated card (IDENTICAL STYLE)
 								VStack(alignment: .leading, spacing: 6) {
-									Label("Translated", systemImage: "character.bubble.fill")
-										.font(.system(size: 11, weight: .bold))
-										.foregroundStyle(.blue)
-									
+									HStack{
+										Label("Translated", systemImage: "character.bubble.fill")
+											.font(.system(size: 11, weight: .bold))
+											.foregroundStyle(.blue)
+										
+										Spacer()
+											// SPEAKER BUTTON NOW LIVES HERE
+										Button {
+											speech.speak(s.translated)
+										} label: {
+											Image(systemName: "speaker.wave.2.fill")
+												.font(.system(size: 15, weight: .semibold))
+												.symbolRenderingMode(.hierarchical)
+												.foregroundStyle(.blue.opacity(0.6)) // Styled to match the card
+										}
+									}
 									Text(s.translated)
 										.font(.system(.body, design: .rounded).weight(.medium))
 										.foregroundStyle(.primary)
 										.fixedSize(horizontal: false, vertical: true)
+									
 								}
 								.frame(maxWidth: .infinity, alignment: .leading)
 								.padding(14)
@@ -502,237 +515,6 @@ struct WordDetailSheet: View {
 		}
 	}
 }
-//struct WordDetailSheet: View {
-//	
-//	let result: FoundationAIService.QuizResult
-//	let aiService: FoundationAIService
-//	
-//	@Environment(\.dismiss) private var dismiss
-//	
-//	@State private var sentence: FoundationAIService.BilingualSentence? = nil
-//	@State private var isLoading = true
-//	
-//	private let speech = SpeechService.shared
-//	
-//	var body: some View {
-//		NavigationStack {
-//			VStack(spacing: 0) {
-//				
-//					// Word hero section
-//				VStack(spacing: 12) {
-//					VStack(spacing: 6) {
-//						
-//							// Translated word + speak button embedded in background
-//						HStack(spacing: 0) {
-//							Text(result.translatedWord.capitalized)
-//								.font(.system(size: 42, weight: .bold, design: .rounded))
-//								.foregroundStyle(.primary)
-//							
-//							Spacer()
-//							
-//							Button {
-//								speech.speak(result.translatedWord)
-//							} label: {
-//								Image(systemName: "speaker.wave.2.fill")
-//									.font(.system(size: 16, weight: .semibold))
-//									.foregroundStyle(
-//										LinearGradient(
-//											colors: [.orange, .blue],
-//											startPoint: .topLeading,
-//											endPoint: .bottomTrailing
-//										)
-//									)
-//									.padding(10)
-//									.background(.ultraThinMaterial, in: Circle())
-//									.overlay(
-//										Circle().stroke(
-//											LinearGradient(
-//												colors: [Color.orange.opacity(0.5), Color.blue.opacity(0.4)],
-//												startPoint: .topLeading,
-//												endPoint: .bottomTrailing
-//											),
-//											lineWidth: 1
-//										)
-//									)
-//							}
-//						}
-//						.padding(.horizontal, 24)
-//						
-//						HStack(spacing: 6) {
-//							Image(systemName: "globe")
-//								.font(.caption)
-//								.foregroundStyle(.tertiary)
-//							
-//							Text(result.correctEnglish.capitalized)
-//								.font(.system(.subheadline, design: .rounded))
-//								.foregroundStyle(.secondary)
-//						}
-//						.frame(maxWidth: .infinity, alignment: .leading)
-//						.padding(.horizontal, 24)
-//					}
-//				}
-//				.frame(maxWidth: .infinity)
-//				.padding(.vertical, 36)
-//				.background(.ultraThinMaterial)
-//				
-//					// Sentence section
-//				Group {
-//					if isLoading {
-//						sentenceLoadingView
-//					} else if let sentence {
-//						sentenceView(sentence)
-//					} else {
-//						sentenceErrorView
-//					}
-//				}
-//				.padding(24)
-//				
-//				Spacer()
-//			}
-//			.navigationTitle("Word Details")
-//			.navigationBarTitleDisplayMode(.inline)
-//			.toolbar {
-//				ToolbarItem(placement: .cancellationAction) {
-//					Button {
-//						dismiss()
-//					} label: {
-//						Image(systemName: "xmark")
-//					}
-//				}
-//			}
-//		}
-//		.task {
-//			sentence = await aiService.generateBilingualSentence(for: result.correctEnglish)
-//			isLoading = false
-//		}
-//	}
-//	
-//	func sentenceView(_ s: FoundationAIService.BilingualSentence) -> some View {
-//		VStack(spacing: 16) {
-//			
-//			HStack {
-//				Image(systemName: "text.quote")
-//					.foregroundStyle(
-//						LinearGradient(colors: [.orange, .blue], startPoint: .leading, endPoint: .trailing)
-//					)
-//				
-//				Text("Example Sentence")
-//					.font(.system(.subheadline, design: .rounded).bold())
-//					.foregroundStyle(.secondary)
-//				
-//				Spacer()
-//			}
-//			
-//				// Translated sentence card with speak inside
-//			VStack(alignment: .leading, spacing: 10) {
-//				
-//				HStack(alignment: .top) {
-//					Label("Translated", systemImage: "character.bubble.fill")
-//						.font(.system(size: 11, weight: .bold))
-//						.foregroundStyle(.orange)
-//					
-//					Spacer()
-//					
-//					Button {
-//						speech.speak(s.translated)
-//					} label: {
-//						Image(systemName: "speaker.wave.2.fill")
-//							.font(.system(size: 13, weight: .semibold))
-//							.foregroundStyle(
-//								LinearGradient(
-//									colors: [.orange, .blue],
-//									startPoint: .topLeading,
-//									endPoint: .bottomTrailing
-//								)
-//							)
-//							.padding(8)
-//							.background(.ultraThinMaterial, in: Circle())
-//							.overlay(
-//								Circle().stroke(
-//									LinearGradient(
-//										colors: [Color.orange.opacity(0.5), Color.blue.opacity(0.4)],
-//										startPoint: .topLeading,
-//										endPoint: .bottomTrailing
-//									),
-//									lineWidth: 1
-//								)
-//							)
-//					}
-//				}
-//				
-//				Text(s.translated)
-//					.font(.system(.body, design: .rounded).weight(.medium))
-//					.foregroundStyle(.primary)
-//					.fixedSize(horizontal: false, vertical: true)
-//			}
-//			.frame(maxWidth: .infinity, alignment: .leading)
-//			.padding(16)
-//			.background(
-//				LinearGradient(
-//					colors: [Color.orange.opacity(0.08), Color.blue.opacity(0.08)],
-//					startPoint: .topLeading,
-//					endPoint: .bottomTrailing
-//				),
-//				in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-//			)
-//			.overlay(
-//				RoundedRectangle(cornerRadius: 16, style: .continuous)
-//					.stroke(
-//						LinearGradient(
-//							colors: [Color.orange.opacity(0.3), Color.blue.opacity(0.25)],
-//							startPoint: .topLeading,
-//							endPoint: .bottomTrailing
-//						),
-//						lineWidth: 1
-//					)
-//			)
-//			
-//				// English sentence card
-//			VStack(alignment: .leading, spacing: 8) {
-//				
-//				Label("English", systemImage: "textformat.abc")
-//					.font(.system(size: 11, weight: .bold))
-//					.foregroundStyle(.secondary)
-//				
-//				Text(s.english)
-//					.font(.system(.body, design: .rounded))
-//					.foregroundStyle(.secondary)
-//					.fixedSize(horizontal: false, vertical: true)
-//			}
-//			.frame(maxWidth: .infinity, alignment: .leading)
-//			.padding(16)
-//			.background(
-//				Color(.secondarySystemBackground),
-//				in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-//			)
-//		}
-//	}
-//	
-//	var sentenceLoadingView: some View {
-//		VStack(spacing: 14) {
-//			ProgressView()
-//				.controlSize(.regular)
-//			Text("Generating example sentence...")
-//				.font(.system(.subheadline, design: .rounded))
-//				.foregroundStyle(.secondary)
-//		}
-//		.frame(maxWidth: .infinity)
-//		.padding(.top, 32)
-//	}
-//	
-//	var sentenceErrorView: some View {
-//		VStack(spacing: 10) {
-//			Image(systemName: "exclamationmark.circle")
-//				.font(.system(size: 32))
-//				.foregroundStyle(.secondary)
-//			Text("Couldn't load an example sentence.")
-//				.font(.subheadline)
-//				.foregroundStyle(.secondary)
-//		}
-//		.frame(maxWidth: .infinity)
-//		.padding(.top, 32)
-//	}
-//}
 
 	// MARK: - Instructions (untouched)
 struct QuickScanInstructionsSheet: View {

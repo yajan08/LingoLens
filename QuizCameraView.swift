@@ -700,7 +700,7 @@ struct SentenceHintSheet: View {
 						
 						if revealAnswer {
 							HStack(spacing: 6) {
-								Image(systemName: "arrow.left.arrow.right")
+								Image(systemName: "text.quote")
 									.font(.caption)
 									.foregroundStyle(.tertiary)
 								Text(display(quiz.correctEnglish).capitalized)
@@ -730,7 +730,7 @@ struct SentenceHintSheet: View {
 						} else if let s = sentence {
 							VStack(spacing: 12) {
 								HStack {
-									Image(systemName: "text.quote")
+									Image(systemName: "translate")
 										.foregroundStyle(.blue)
 									Text("Example Sentence")
 										.font(.system(.subheadline, design: .rounded).bold())
