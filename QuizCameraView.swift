@@ -687,6 +687,9 @@ struct SentenceHintSheet: View {
 							Text(display(quiz.translatedWord).capitalized)
 								.font(.system(size: 40, weight: .bold, design: .rounded))
 								.foregroundStyle(.primary)
+								.lineLimit(1)
+								.minimumScaleFactor(0.5)
+								.allowsTightening(true)
 							
 							Button {
 								speech.speak(display(quiz.translatedWord))
@@ -694,13 +697,13 @@ struct SentenceHintSheet: View {
 								Image(systemName: "speaker.wave.2.fill")
 									.font(.system(size: 16, weight: .semibold))
 									.symbolRenderingMode(.hierarchical)
-									.foregroundStyle(.secondary)
 							}
 						}
+						.padding(.horizontal, 20)
 						
 						if revealAnswer {
 							HStack(spacing: 6) {
-								Image(systemName: "text.quote")
+								Image(systemName: "textformat.abc")
 									.font(.caption)
 									.foregroundStyle(.tertiary)
 								Text(display(quiz.correctEnglish).capitalized)
@@ -730,30 +733,35 @@ struct SentenceHintSheet: View {
 						} else if let s = sentence {
 							VStack(spacing: 12) {
 								HStack {
-									Image(systemName: "translate")
+									Image(systemName: "text.quote")
 										.foregroundStyle(.blue)
 									Text("Example Sentence")
 										.font(.system(.subheadline, design: .rounded).bold())
 										.foregroundStyle(.secondary)
 									Spacer()
 									
-									if let s = sentence {
-										Button {
-											speech.speak(s.translated)
-										} label: {
-											Image(systemName: "speaker.wave.2.fill")
-												.font(.system(size: 14, weight: .semibold))
-												.symbolRenderingMode(.hierarchical)
-												.foregroundStyle(.secondary)
-										}
-									}
 								}
 								
 									// Translated sentence — always shown
 								VStack(alignment: .leading, spacing: 6) {
-									Label("Translated", systemImage: "character.bubble.fill")
-										.font(.system(size: 11, weight: .bold))
-										.foregroundStyle(.blue)
+									HStack{
+										Label("Translated", systemImage: "character.bubble.fill")
+											.font(.system(size: 11, weight: .bold))
+											.foregroundStyle(.blue)
+										
+										Spacer()
+										
+										if let s = sentence {
+											Button {
+												speech.speak(s.translated)
+											} label: {
+												Image(systemName: "speaker.wave.2.fill")
+													.font(.system(size: 15, weight: .semibold))
+													.symbolRenderingMode(.hierarchical)
+													.foregroundStyle(.blue)
+											}
+										}
+									}
 									Text(s.translated)
 										.font(.system(.body, design: .rounded).weight(.medium))
 										.foregroundStyle(.primary)

@@ -75,6 +75,17 @@ struct ResultsView: View {
 		.navigationBarTitleDisplayMode(.inline)
 		.toolbar {
 			
+			ToolbarItem(placement: .topBarLeading) {
+				Button {
+					NotificationCenter.default.post(name: .init("dismissToRoot"), object: nil)
+				} label: {
+					HStack(spacing: 4) {
+						Image(systemName: "chevron.left")
+						Text("Home")
+					}
+				}
+			}
+			
 			ToolbarItem(placement: .topBarTrailing) {
 				
 				Button {
@@ -87,6 +98,7 @@ struct ResultsView: View {
 				.buttonStyle(.borderless)
 			}
 		}
+		.navigationBarBackButtonHidden(true) 
 		.navigationDestination(isPresented: $navigateToQuiz) {
 			QuizSessionView(path: $path, objects: Array(selectedObjects).sorted())
 		}

@@ -212,6 +212,19 @@ private extension QuizSessionView {
 				.animation(.spring(response: 0.5, dampingFraction: 0.85).delay(0.18), value: appeared)
 			}
 		}
+		.navigationBarBackButtonHidden(true)
+		.toolbar {
+			ToolbarItem(placement: .topBarLeading) {
+				Button {
+					NotificationCenter.default.post(name: .init("dismissToRoot"), object: nil)
+				} label: {
+					HStack(spacing: 4) {
+						Image(systemName: "chevron.left")
+						Text("Home")
+					}
+				}
+			}
+		}
 		.onAppear { withAnimation { appeared = true } }
 		.onDisappear { appeared = false }
 	}
@@ -557,6 +570,19 @@ private extension QuizSessionView {
 						.shadow(color: Color.blue.opacity(0.22), radius: 10, x: 0, y: 5)
 				}
 				.padding(.horizontal, 20)
+			}
+		}
+		.navigationBarBackButtonHidden(true)
+		.toolbar {
+			ToolbarItem(placement: .topBarLeading) {
+				Button {
+					NotificationCenter.default.post(name: .init("dismissToRoot"), object: nil)
+				} label: {
+					HStack(spacing: 4) {
+						Image(systemName: "chevron.left")
+						Text("Home")
+					}
+				}
 			}
 		}
 	}

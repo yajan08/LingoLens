@@ -353,6 +353,9 @@ struct WordDetailSheet: View {
 							Text(display(result.translatedWord).capitalized)
 								.font(.system(size: 40, weight: .bold, design: .rounded))
 								.foregroundStyle(.primary)
+								.lineLimit(1)
+								.minimumScaleFactor(0.5)
+								.allowsTightening(true)
 							
 							Button {
 								speech.speak(display(result.translatedWord))
@@ -360,12 +363,12 @@ struct WordDetailSheet: View {
 								Image(systemName: "speaker.wave.2.fill")
 									.font(.system(size: 20, weight: .semibold))
 									.symbolRenderingMode(.hierarchical)
-									.foregroundStyle(.secondary)
 							}
 						}
+						.padding(.horizontal, 20)
 						
 						HStack(spacing: 6) {
-							Image(systemName: "text.quote")
+							Image(systemName: "textformat.abc")
 								.font(.caption)
 								.foregroundStyle(.tertiary)
 							
@@ -396,7 +399,7 @@ struct WordDetailSheet: View {
 							VStack(spacing: 12) {
 								
 								HStack {
-									Image(systemName: "translate")
+									Image(systemName: "text.quote")
 										.foregroundStyle(.blue)
 									
 									Text("Example Sentence")
@@ -404,15 +407,7 @@ struct WordDetailSheet: View {
 										.foregroundStyle(.secondary)
 									
 									Spacer()
-									
-//									Button {
-//										speech.speak(s.translated)
-//									} label: {
-//										Image(systemName: "speaker.wave.2.fill")
-//											.font(.system(size: 14, weight: .semibold))
-//											.symbolRenderingMode(.hierarchical)
-//											.foregroundStyle(.secondary)
-//									}
+
 								}
 								
 									// Translated card (IDENTICAL STYLE)
@@ -430,7 +425,7 @@ struct WordDetailSheet: View {
 											Image(systemName: "speaker.wave.2.fill")
 												.font(.system(size: 15, weight: .semibold))
 												.symbolRenderingMode(.hierarchical)
-												.foregroundStyle(.blue.opacity(0.6)) // Styled to match the card
+												.foregroundStyle(.blue)
 										}
 									}
 									Text(s.translated)
