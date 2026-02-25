@@ -28,7 +28,7 @@ private extension AppLogoView {
 				.overlay(
 					LinearGradient(
 						colors: [
-							Color.white.opacity(0.12),
+							Color.white.opacity(0.14),
 							Color.clear
 						],
 						startPoint: .topLeading,
@@ -39,7 +39,7 @@ private extension AppLogoView {
 				.overlay(
 					LinearGradient(
 						colors: [
-							Color.white.opacity(0.12),
+							Color.white.opacity(0.14),
 							Color.clear
 						],
 						startPoint: .topTrailing,
@@ -80,22 +80,6 @@ private extension AppLogoView {
 						)
 						.blendMode(.overlay)
 				)
-			
-				// Color border
-//				.overlay(
-//					shape
-//						.stroke(
-//							LinearGradient(
-//								colors: [
-//									Color.orange.opacity(0.45),
-//									Color.blue.opacity(0.45)
-//								],
-//								startPoint: .topLeading,
-//								endPoint: .bottomTrailing
-//							),
-//							lineWidth: 1.5
-//						)
-//				)
 			
 				// Outer glow
 				.shadow(color: .orange.opacity(0.15), radius: 20, x: -10, y: -10)

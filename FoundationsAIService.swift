@@ -104,7 +104,7 @@ final actor FoundationAIService: ObservableObject {
 		// MARK: - Translation
 	private func translate(_ object: String) async -> QuizResult? {
 			// Shorter, instructional prompts trigger fewer safety guardrails
-		let prompt = "Translate the English word '\(object)' to \(selectedLanguageRaw). Return ONLY the translated word."
+		let prompt = "You are a translation expert, translate the English word '\(object)' to \(selectedLanguageRaw). Return ONLY the translated word."
 		
 		do {
 			let session = LanguageModelSession()
