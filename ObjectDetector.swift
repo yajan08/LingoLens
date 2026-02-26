@@ -11,7 +11,7 @@ public final class ObjectDetector {
 	
 	private var lastDetectionTime = Date.distantPast
 	
-	private let detectionInterval: TimeInterval = 0.33
+	private let detectionInterval: TimeInterval = 0.15
 	
 	public var onPredictions: (([VNClassificationObservation]) -> Void)?
 	
@@ -76,7 +76,6 @@ public final class ObjectDetector {
 			}
 		}
 	}
-	
 	
 	private func exifOrientation() -> CGImagePropertyOrientation {
 		

@@ -136,7 +136,7 @@ private extension ScannerView {
 				}
 				.frame(maxWidth: .infinity)
 				.padding(.vertical, 18)
-				.background(seenObjects.count < 7 ? Color.secondary.opacity(0.5) : Color.blue)
+				.background(seenObjects.count < 5 ? Color.secondary.opacity(0.5) : Color.blue)
 				.foregroundColor(.white)
 				.clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
 			}
