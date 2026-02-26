@@ -64,7 +64,6 @@ struct QuickScanView: View {
 				analysisOverlay
 			}
 		}
-		.preferredColorScheme(ColorScheme.dark)
 		.navigationBarTitleDisplayMode(.inline)
 		.toolbarBackground(.ultraThinMaterial, for: .navigationBar)
 		.toolbarColorScheme(.dark, for: .navigationBar)
@@ -192,16 +191,7 @@ private extension QuickScanView {
 				.stroke(.white.opacity(0.1), lineWidth: 0.5)
 		)
 	}
-	
-//	var emptyStateToast: some View {
-//		Text("No objects found. Try another angle.")
-//			.font(.caption.bold())
-//			.foregroundStyle(.white)
-//			.padding(.horizontal, 16)
-//			.padding(.vertical, 10)
-//			.background(.ultraThinMaterial, in: Capsule())
-//	}
-	
+
 	var bottomActionArea: some View {
 		VStack {
 			if scanStatus == .displaying {
@@ -544,7 +534,7 @@ struct QuickScanInstructionsSheet: View {
 			.navigationTitle("Quick Scan Guide")
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar {
-				ToolbarItem(placement: .confirmationAction) {
+				ToolbarItem(placement: .cancellationAction) {
 					Button {
 						dismiss()
 					} label : {

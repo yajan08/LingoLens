@@ -13,7 +13,6 @@ struct ScannerView: View {
 	@State private var showHelp = false
 	
 	var body: some View {
-//		NavigationStack {
 			ZStack {
 				CameraPreview(session: cameraService.session)
 					.ignoresSafeArea()
@@ -27,7 +26,6 @@ struct ScannerView: View {
 					bottomActionCard
 				}
 			}
-			.preferredColorScheme(ColorScheme.dark)
 			.navigationTitle("Environment Scan")
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbarBackground(.ultraThinMaterial, for: .navigationBar)
@@ -45,7 +43,6 @@ struct ScannerView: View {
 			.sheet(isPresented: $showHelp) {
 				ScannerInstructionsSheet()
 			}
-//		}
 		.onAppear { startDetection() }
 		.onDisappear { cameraService.stop() }
 	}
@@ -79,7 +76,7 @@ private extension ScannerView {
 			HStack(spacing: 8) {
 				
 				Image(systemName: scanningSymbols[symbolIndex])
-					.foregroundStyle(.white)
+					.foregroundStyle(.primary)
 					.symbolEffect(.pulse, options: .repeating)
 					.contentTransition(.symbolEffect(.replace))
 					.animation(
@@ -89,7 +86,7 @@ private extension ScannerView {
 				
 				Text("Scanning Space...")
 					.font(.caption.weight(.semibold))
-					.foregroundStyle(.white)
+					.foregroundStyle(.primary)
 			}
 			.padding(.horizontal, 14)
 			.padding(.vertical, 8)
@@ -109,9 +106,9 @@ private extension ScannerView {
 			VStack(spacing: 4) {
 				Text("Scan different objects around you")
 					.font(.subheadline.bold())
-					.foregroundStyle(.white)
+					.foregroundStyle(.primary)
 				
-				Text("Point the camera at one object at a time and from multiple angles.")
+				Text("Point the camera one object at a time and from multiple angles. Tap finish scan when done.")
 					.font(.caption)
 					.foregroundStyle(.secondary)
 			}

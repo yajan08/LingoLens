@@ -282,7 +282,7 @@ struct LingoInfoSheet: View {
 								icon: "dot.viewfinder",
 								color: .orange,
 								title: "1. Scan & Extract",
-								detail: "Move around your environment. LingoLens intelligently identifies all visible objects."
+								detail: "Move your camera around your environment. LingoLens intelligently identifies all visible objects."
 							)
 							Divider().padding(.leading, 56)
 							InstructionDetailRow(

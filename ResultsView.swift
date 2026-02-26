@@ -343,7 +343,6 @@ private extension ResultsView {
 
 struct ResultsInstructionsSheet: View {
 	@Environment(\.dismiss) private var dismiss
-	
 	var body: some View {
 		NavigationStack {
 			List {
@@ -369,19 +368,19 @@ struct ResultsInstructionsSheet: View {
 						detail: "Once your list is perfect, tap 'Start' to begin your scavenger hunt."
 					)
 				}
-				}
 			}
 			.navigationTitle("Review Guide")
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar {
-				ToolbarItem(placement: .confirmationAction) {
+				ToolbarItem(placement: .cancellationAction) {
 					Button {
 						dismiss()
-					} label : {
+					} label: {
 						Image(systemName: "xmark")
 					}
-						.fontWeight(.semibold)
+					.fontWeight(.semibold)
 				}
 			}
 		}
+	}
 	}

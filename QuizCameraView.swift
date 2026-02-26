@@ -78,7 +78,6 @@ struct QuizCameraView: View {
 					processingOverlay
 				}
 			}
-			.preferredColorScheme(.dark)
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbarBackground(.ultraThinMaterial, for: .navigationBar)
 			.toolbarColorScheme(.dark, for: .navigationBar)
@@ -91,7 +90,7 @@ struct QuizCameraView: View {
 				ToolbarItem(placement: .principal) {
 					Text("\(currentIndex + 1) of \(quizzes.count)")
 						.font(.system(.subheadline, design: .monospaced).bold())
-						.foregroundStyle(.white.opacity(0.8))
+						.foregroundStyle(.primary.opacity(0.8))
 				}
 				ToolbarItem(placement: .topBarTrailing) {
 					Button { showHelp = true } label: {
@@ -342,11 +341,11 @@ private extension QuizCameraView {
 			VStack(alignment: .leading, spacing: 2) {
 				Text("FIND THE OBJECT")
 					.font(.system(size: 9, weight: .black))
-					.foregroundStyle(.white.opacity(0.45))
+					.foregroundStyle(.primary.opacity(0.45))
 					.tracking(1.4)
 				Text(display(quiz.translatedWord).uppercased())
 					.font(.system(.title3, design: .rounded).bold())
-					.foregroundStyle(.white)
+					.foregroundStyle(.primary)
 					.lineLimit(1)
 					.minimumScaleFactor(0.7)
 			}
@@ -359,17 +358,17 @@ private extension QuizCameraView {
 				Group {
 					if isLoadingHint && hintSentence == nil {
 						ProgressView()
-							.tint(.white)
+							.tint(.primary)
 							.controlSize(.mini)
 							.frame(width: 32, height: 32)
 					} else {
 						Image(systemName: "info")
 							.font(.system(size: 12, weight: .medium))
-							.foregroundStyle(.white.opacity(0.8))
+							.foregroundStyle(.foreground)
 							.frame(width: 32, height: 32)
 					}
 				}
-				.background(.white.opacity(0.1), in: Circle())
+				.background(.regularMaterial.opacity(0.3), in: Circle())
 			}
 		}
 		.padding(.horizontal, 16)
@@ -386,6 +385,10 @@ private extension QuizCameraView {
 					lineWidth: 1
 				)
 		)
+		.contentShape(RoundedRectangle(cornerRadius: 18))
+		.onTapGesture {
+			loadHintSentence()
+		}
 		.padding(.horizontal, 16)
 		.shadow(color: .black.opacity(0.18), radius: 10, y: 4)
 	}
@@ -398,10 +401,10 @@ private extension QuizCameraView {
 				Text("Tap anywhere to scan")
 					.font(.system(.subheadline, design: .rounded).bold())
 			}
-			.foregroundStyle(.white)
+			.foregroundStyle(.primary)
 			Text("Point camera at the object")
 				.font(.system(.caption, design: .rounded))
-				.foregroundStyle(.white.opacity(0.55))
+				.foregroundStyle(.primary.opacity(0.55))
 		}
 		.padding(.horizontal, 22)
 		.padding(.vertical, 13)
@@ -427,7 +430,7 @@ private extension QuizCameraView {
 				.foregroundStyle(.red.opacity(0.85))
 			Text("No match — try a different angle")
 				.font(.system(.subheadline, design: .rounded).bold())
-				.foregroundStyle(.white)
+				.foregroundStyle(.primary)
 		}
 		.padding(.horizontal, 18)
 		.padding(.vertical, 11)
@@ -473,7 +476,7 @@ private extension QuizCameraView {
 				}
 			} else if let s = revealedSentence {
 				VStack(spacing: 8) {
-					Divider().overlay(.white.opacity(0.1))
+					Divider().overlay(.primary.opacity(0.1))
 					sentenceCards(sentence: s)
 				}
 			}
@@ -483,7 +486,7 @@ private extension QuizCameraView {
 		.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
 		.overlay(
 			RoundedRectangle(cornerRadius: 24, style: .continuous)
-				.strokeBorder(.white.opacity(0.09), lineWidth: 1)
+				.strokeBorder(.primary.opacity(0.09), lineWidth: 1)
 		)
 		.padding(.horizontal, 20)
 	}
@@ -521,7 +524,7 @@ private extension QuizCameraView {
 				}
 			} else if let s = successSentence {
 				VStack(spacing: 8) {
-					Divider().overlay(.white.opacity(0.1))
+					Divider().overlay(.primary.opacity(0.1))
 					sentenceCards(sentence: s)
 				}
 			}
@@ -531,7 +534,7 @@ private extension QuizCameraView {
 		.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
 		.overlay(
 			RoundedRectangle(cornerRadius: 24, style: .continuous)
-				.strokeBorder(.white.opacity(0.09), lineWidth: 1)
+				.strokeBorder(.primary.opacity(0.09), lineWidth: 1)
 		)
 		.padding(.horizontal, 20)
 	}
@@ -596,7 +599,7 @@ private extension QuizCameraView {
 				}
 				.frame(maxWidth: .infinity)
 				.padding(.vertical, 17)
-				.background(isComplete ? Color.blue : Color.white.opacity(0.1), in: Capsule())
+				.background(isComplete ? Color.blue : Color.primary.opacity(0.1), in: Capsule())
 				.background(isComplete ? .thinMaterial : .ultraThinMaterial, in: Capsule())
 				.foregroundStyle(.white)
 				.overlay(
@@ -610,7 +613,6 @@ private extension QuizCameraView {
 							lineWidth: 1
 						)
 				)
-				.shadow(color: isComplete ? .blue.opacity(0.3) : .clear, radius: 12, y: 5)
 			}
 			.animation(.spring(response: 0.35), value: isComplete)
 		}
@@ -632,23 +634,23 @@ private extension QuizCameraView {
 						)
 						.frame(width: 56, height: 56)
 					ProgressView()
-						.tint(.white)
+						.tint(.primary)
 						.controlSize(.regular)
 				}
 				VStack(spacing: 4) {
 					Text("Analyzing Environment")
 						.font(.system(.subheadline, design: .rounded).bold())
-						.foregroundStyle(.white)
+						.foregroundStyle(.primary)
 					Text("Looking for a match...")
 						.font(.system(.caption, design: .rounded))
-						.foregroundStyle(.white.opacity(0.6))
+						.foregroundStyle(.primary.opacity(0.6))
 				}
 			}
 			.padding(28)
 			.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
 			.overlay(
 				RoundedRectangle(cornerRadius: 24, style: .continuous)
-					.strokeBorder(.white.opacity(0.08), lineWidth: 1)
+					.strokeBorder(.primary.opacity(0.08), lineWidth: 1)
 			)
 		}
 	}
@@ -847,40 +849,26 @@ struct InstructionsSheet: View {
 					InstructionRow(
 						icon: "sun.max.fill",
 						color: .orange,
-						title: "1. Check Your Lighting",
-						detail: "AI works best in bright, even lighting. Avoid dark rooms or heavy shadows for the best accuracy."
+						title: "Accuracy",
+						detail: "Scan in bright light, stay about 1–2 feet away and center the object"
 					)
+					
 					InstructionRow(
-						icon: "arrow.up.and.down.and.arrow.left.and.right",
-						color: .blue,
-						title: "2. Adjust Your Distance",
-						detail: "Try to keep the object centered and about 1-2 feet away. Too close or too far can make it harder to identify."
-					)
-					InstructionRow(
-						icon: "camera.viewfinder",
+						icon: "camera.rotate",
 						color: .purple,
-						title: "3. Try Different Angles",
-						detail: "If it's not working, move your phone! A top-down or side view might help the AI recognize the shape better."
+						title: "Try Angles",
+						detail: "Move around the object and try multiple angles if detection fails."
 					)
-				} header: {
-					Text("Optimization Tips")
-				}
-				
-				Section {
+					
 					InstructionRow(
 						icon: "hand.tap.fill",
 						color: .green,
-						title: "Verify Instantly",
-						detail: "When you think you've found it, tap anywhere on the camera feed to start the analysis."
+						title: "Can't Find It?",
+						detail: "Tap Show Answer to continue, lighting, clutter, or object type may affect results.."
 					)
-					InstructionRow(
-						icon: "eye",
-						color: .blue,
-						title: "Need a Hint?",
-						detail: "Tap 'Show Answer' at the bottom to reveal the word and see an example sentence."
-					)
+					
 				} header: {
-					Text("How to Play")
+					Text("Quick Guide")
 				}
 			}
 			.navigationTitle("Scavenger Guide")
