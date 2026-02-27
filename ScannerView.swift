@@ -115,7 +115,7 @@ private extension ScannerView {
 					.foregroundStyle(.secondary)
 			}
 			.multilineTextAlignment(.center)
-			.padding(.horizontal, 15)
+			.padding(.horizontal, 20)
 			.padding(.vertical, 14)
 			.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
 			
