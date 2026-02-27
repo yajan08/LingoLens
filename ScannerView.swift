@@ -120,7 +120,7 @@ private extension ScannerView {
 			.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
 			
 			HStack(spacing: 6) {
-				ForEach(0..<min(seenObjects.count, 8), id: \.self) { _ in
+				ForEach(0..<min(seenObjects.count, 5), id: \.self) { _ in
 					Circle()
 						.fill(Color.blue)
 						.frame(width: 6, height: 6)
@@ -140,7 +140,7 @@ private extension ScannerView {
 				.foregroundColor(.white)
 				.clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
 			}
-			.disabled(seenObjects.count < 7)
+			.disabled(seenObjects.count < 5)
 			.padding(.horizontal, 24)
 		}
 		.padding(.bottom, 34)
