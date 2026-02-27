@@ -2,7 +2,8 @@ import Foundation
 import Vision
 import UIKit
 
-public final class ObjectDetector {
+	/// Runs Vision image classification on camera frames and reports results via a callback.
+public final class ObjectDetector: @unchecked Sendable {
 	
 	private let visionQueue = DispatchQueue(
 		label: "vision.pipeline.queue",
@@ -10,15 +11,13 @@ public final class ObjectDetector {
 	)
 	
 	private var lastDetectionTime = Date.distantPast
-	
 	private let detectionInterval: TimeInterval = 0.15
 	
 	public var onPredictions: (([VNClassificationObservation]) -> Void)?
 	
-	
 	public init() {}
 	
-	
+		/// Performs classification on the given pixel buffer, throttled by the detection interval.
 	public func detect(from pixelBuffer: CVPixelBuffer) {
 		
 		visionQueue.async { [weak self] in
@@ -27,56 +26,40 @@ public final class ObjectDetector {
 			
 			let now = Date()
 			
-			guard now.timeIntervalSince(self.lastDetectionTime)
-					> self.detectionInterval else {
+			guard now.timeIntervalSince(self.lastDetectionTime) > self.detectionInterval else {
 				return
 			}
 			
 			self.lastDetectionTime = now
 			
-			
 			let orientation = self.exifOrientation()
-			
-			
-				// CREATE NEW request every time (thread-safe)
 			let request = VNClassifyImageRequest()
-			
-			
 			let handler = VNImageRequestHandler(
 				cvPixelBuffer: pixelBuffer,
 				orientation: orientation
 			)
 			
-			
 			do {
 				
 				try handler.perform([request])
 				
-				
-				guard let results =
-						request.results as? [VNClassificationObservation]
-				else { return }
-				
+				guard let results = request.results else { return }
 				
 				let filtered = results
 					.filter { $0.confidence > 0.25 }
 					.prefix(5)
 				
-				
 				DispatchQueue.main.async {
-					
 					self.onPredictions?(Array(filtered))
-					
 				}
 				
 			} catch {
-				
 				print("Vision error:", error)
-				
 			}
 		}
 	}
 	
+		/// Maps the current device orientation to the matching EXIF orientation for Vision.
 	private func exifOrientation() -> CGImagePropertyOrientation {
 		
 		switch UIDevice.current.orientation {

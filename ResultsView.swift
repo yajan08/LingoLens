@@ -1,22 +1,19 @@
 import SwiftUI
 
-	/// The landing page for LingoLens, designed for the Swift Student Challenge.
-	/// Uses native navigation patterns and a modern floating action button.
+/// Displays detected objects, allows manual additions,
+/// and lets the user choose items before starting the quiz.
 @available(iOS 26.0, *)
 struct ResultsView: View {
 	
-		// MARK: - Properties
-	@Binding var path: NavigationPath // 1. Add Binding
+	@Binding var path: NavigationPath
 	
-		/// Raw labels passed instantly from the ScannerView to avoid camera-to-result lag.
+	/// Raw labels passed instantly from the ScannerView to avoid camera-to-result lag.
 	let rawDetectedLabels: [String]
 	private let aiService = FoundationAIService()
 	
 	@Environment(\.dismiss) private var dismiss
 	
 	@FocusState private var isTextFieldFocused: Bool
-	
-		// MARK: - State
 	
 	@State private var filteredObjects: [String] = []
 	@State private var manualObjects: [String] = []
@@ -27,21 +24,19 @@ struct ResultsView: View {
 	@State private var showHelp = false
 	
 	
-		/// Combined list with manual objects FIRST (instant priority)
+	/// Combines manual and detected objects while removing duplicates
 	private var allObjects: [String] {
 		var seen = Set<String>()
 		return (manualObjects + filteredObjects)
 			.filter { !$0.isEmpty && seen.insert($0).inserted }
 	}
 	
-		// FIX 1: canStart now correctly derives from allObjects + selectedObjects,
-		// not just selectedObjects — handles the manual-only case properly.
+	/// Determines if quiz can start based on selection state
 	private var canStart: Bool {
 		!isFiltering && !selectedObjects.isEmpty
 	}
 	
-	
-		// MARK: - Body
+	// MARK: - Body
 	
 	var body: some View {
 		VStack(spacing: 0) {
@@ -111,13 +106,10 @@ struct ResultsView: View {
 	}
 }
 
-	//
-	// MARK: - UI Components
-	//
-
 @available(iOS 26.0, *)
 private extension ResultsView {
 	
+	/// Top header explaining the review step
 	var header: some View {
 		VStack(alignment: .leading, spacing: 6) {
 			
@@ -132,7 +124,7 @@ private extension ResultsView {
 		.padding()
 	}
 	
-	
+	/// Placeholder shimmer shown while AI filtering runs
 	var loadingShimmer: some View {
 		VStack(spacing: 12) {
 			ForEach(0..<6, id: \.self) { _ in
@@ -159,6 +151,7 @@ private extension ResultsView {
 		.opacity(0.6)
 	}
 	
+	/// Input row allowing instant manual object addition
 	var addObjectRow: some View {
 		HStack(spacing: 12) {
 			
@@ -191,6 +184,7 @@ private extension ResultsView {
 		.animation(.spring(response: 0.35, dampingFraction: 0.8), value: newObjectText.isEmpty)
 	}
 	
+	/// Row representing a selectable object item
 	func selectableRow(_ object: String) -> some View {
 		
 		let isSelected = selectedObjects.contains(object)
@@ -219,6 +213,7 @@ private extension ResultsView {
 		.buttonStyle(.plain)
 	}
 	
+	/// Primary action button that starts the scavenger hunt
 	var startButton: some View {
 		
 		Button {
@@ -239,6 +234,7 @@ private extension ResultsView {
 		.padding(.horizontal, 15)
 	}
 	
+	/// Empty state shown when no objects exist
 	var emptyStateContent: some View {
 		
 		VStack(spacing: 16) {
@@ -264,13 +260,10 @@ private extension ResultsView {
 	}
 }
 
-	//
-	// MARK: - Logic
-	//
-
 @available(iOS 26.0, *)
 private extension ResultsView {
 	
+	/// Sends detected labels to AI service and prepares selectable results
 	func performFiltering() {
 		
 		guard !rawDetectedLabels.isEmpty else {
@@ -299,7 +292,7 @@ private extension ResultsView {
 	}
 	
 	
-		/// ZERO latency manual add — instant state update
+	/// Instantly adds a manually entered object and selects it
 	func addManualObjectInstant() {
 		
 		let text = newObjectText
@@ -308,8 +301,6 @@ private extension ResultsView {
 		
 		guard !text.isEmpty else { return }
 		
-			// FIX 6: Dismiss keyboard AFTER capturing text, not before,
-			// to prevent the text field from clearing before we read it.
 		let captured = text
 		newObjectText = ""
 		isTextFieldFocused = false
@@ -324,7 +315,7 @@ private extension ResultsView {
 		UIImpactFeedbackGenerator(style: .light).impactOccurred()
 	}
 	
-	
+	/// Toggles selection state of an object
 	func toggle(_ object: String) {
 		
 		UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -337,10 +328,7 @@ private extension ResultsView {
 	}
 }
 
-	//
-	// MARK: - Instructions Sheet
-	//
-
+/// Help sheet explaining how to finalize selected objects
 struct ResultsInstructionsSheet: View {
 	@Environment(\.dismiss) private var dismiss
 	var body: some View {
@@ -383,4 +371,4 @@ struct ResultsInstructionsSheet: View {
 			}
 		}
 	}
-	}
+}

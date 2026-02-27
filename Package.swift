@@ -34,7 +34,8 @@ let package = Package(
             ],
             capabilities: [
                 .camera(purposeString: "To scan and detect objects in real time.")
-            ]
+            ],
+            appCategory: .education
         )
     ],
     targets: [

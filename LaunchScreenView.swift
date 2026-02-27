@@ -1,8 +1,7 @@
 import SwiftUI
 
+	/// Animated launch screen that transitions into the main app content.
 struct LaunchScreenView: View {
-	
-		// MARK: Animation States
 	
 	@State private var isAnimating = false
 	@State private var textVisible = false
@@ -10,10 +9,7 @@ struct LaunchScreenView: View {
 	@State private var heroBreath = false
 	@State private var finalZoom = false
 	
-		// Stable random symbol layout
 	private let symbols = FloatingSymbolModel.generate(count: 24)
-	
-		// MARK: Body
 	
 	var body: some View {
 		
@@ -30,8 +26,8 @@ struct LaunchScreenView: View {
 							)
 						)
 				} else {
-						// Fallback on earlier versions
-					EmptyView()
+					UnsupportedOSView()
+						.transition(.opacity)
 				}
 			}
 			
@@ -62,11 +58,9 @@ struct LaunchScreenView: View {
 	}
 }
 
-
-	// MARK: Background
-
 private extension LaunchScreenView {
 	
+		/// Layered radial gradient background.
 	var modernBackground: some View {
 		
 		ZStack {
@@ -106,11 +100,9 @@ private extension LaunchScreenView {
 	}
 }
 
-
-	// MARK: Hero Icon
-
 private extension LaunchScreenView {
 	
+		/// Animated hero icon composed of a glow, glass plate, magnifying glass, and translate badge.
 	var heroIcon: some View {
 		
 		ZStack {
@@ -128,7 +120,7 @@ private extension LaunchScreenView {
 		.animation(.easeInOut(duration: 0.8), value: finalZoom)
 	}
 	
-	
+		/// Soft pulsing gradient glow behind the icon.
 	var breathingGlow: some View {
 		
 		Circle()
@@ -153,7 +145,7 @@ private extension LaunchScreenView {
 			)
 	}
 	
-	
+		/// Frosted glass card behind the icon.
 	var glassPlate: some View {
 		
 		Group {
@@ -174,7 +166,7 @@ private extension LaunchScreenView {
 		.opacity(finalZoom ? 0 : 1)
 	}
 	
-	
+		/// Spinning magnifying glass with a zoom-out transition on exit.
 	var magnifyingGlass: some View {
 		
 		Group {
@@ -218,7 +210,7 @@ private extension LaunchScreenView {
 		.scaleEffect(finalZoom ? 15 : 1)
 	}
 	
-	
+		/// Bouncing translate badge overlaid on the magnifying glass.
 	var translateIcon: some View {
 		
 		Group {
@@ -268,11 +260,9 @@ private extension LaunchScreenView {
 	}
 }
 
-
-	// MARK: Typography
-
 private extension LaunchScreenView {
 	
+		/// App name and tagline with a fade-in entrance animation.
 	var brandTypography: some View {
 		
 		VStack(spacing: 8) {
@@ -298,11 +288,9 @@ private extension LaunchScreenView {
 	}
 }
 
-
-	// MARK: Floating Symbols
-
 private extension LaunchScreenView {
 	
+		/// Scattered SF Symbol icons that float and pulse in the background.
 	var floatingSymbols: some View {
 		
 		ZStack {
@@ -327,11 +315,9 @@ private extension LaunchScreenView {
 	}
 }
 
-
-	// MARK: Animation Sequence
-
 private extension LaunchScreenView {
 	
+		/// Kicks off the timed animation sequence that ends by revealing the main content.
 	func startAnimationSequence() {
 		
 		isAnimating = true
@@ -355,9 +341,7 @@ private extension LaunchScreenView {
 	}
 }
 
-
-	// MARK: Floating Symbol Model
-
+	/// Data model for a single floating background symbol.
 private struct FloatingSymbolModel: Identifiable {
 	
 	let id = UUID()
@@ -369,7 +353,7 @@ private struct FloatingSymbolModel: Identifiable {
 	let duration: Double
 	let color: Color
 	
-	
+		/// Generates a randomised array of floating symbol models.
 	static func generate(count: Int) -> [FloatingSymbolModel] {
 		
 		let names = [
@@ -396,6 +380,34 @@ private struct FloatingSymbolModel: Identifiable {
 	}
 }
 
+	/// Displayed when the app is run on an iOS version below the minimum requirement.
+struct UnsupportedOSView: View {
+	
+	var body: some View {
+		VStack(spacing: 20) {
+			
+			Image(systemName: "iphone.slash")
+				.font(.system(size: 48))
+				.foregroundStyle(.secondary)
+			
+			Text("Unsupported iOS Version")
+				.font(.title2.bold())
+			
+			Text("""
+This experience requires a newer version of iOS \
+to access real-time camera scanning and Vision features.
+
+Please update your device to continue.
+""")
+			.font(.body)
+			.foregroundStyle(.secondary)
+			.multilineTextAlignment(.center)
+			.padding(.horizontal)
+		}
+		.frame(maxWidth: .infinity, maxHeight: .infinity)
+		.background(Color(.systemBackground))
+	}
+}
 
 #Preview {
 	LaunchScreenView()

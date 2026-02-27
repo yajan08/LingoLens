@@ -1,19 +1,17 @@
 import SwiftUI
 import Vision
 
+	/// Camera view that lets the user instantly scan and identify nearby objects, displaying bilingual results.
 @available(iOS 26.0, *)
 struct QuickScanView: View {
-		// MARK: - Properties
 	
 	@StateObject private var cameraService = CameraService()
 	@State private var detector = ObjectDetector()
 	private let aiService = FoundationAIService()
 	
-		// Core State
 	@State private var latestPixelBuffer: CVPixelBuffer?
 	@State private var detectedResults: [FoundationAIService.QuizResult] = []
 	
-		// UI State
 	@State private var isAnalyzing = false
 	@State private var showHelp = false
 	@State private var pulseScale: CGFloat = 1.0
@@ -30,7 +28,6 @@ struct QuickScanView: View {
 	private let notification = UINotificationFeedbackGenerator()
 	@Binding var path: NavigationPath
 	
-		// MARK: - Body
 	var body: some View {
 		ZStack {
 			CameraPreview(session: cameraService.session)
@@ -100,10 +97,10 @@ struct QuickScanView: View {
 	}
 }
 
-	// MARK: - UI Components
 @available(iOS 26.0, *)
 private extension QuickScanView {
 	
+		/// Horizontal scrollable list of detected object result cards.
 	var resultsCarousel: some View {
 		ScrollView(.horizontal, showsIndicators: false) {
 			HStack(spacing: 12) {
@@ -115,6 +112,7 @@ private extension QuickScanView {
 		}
 	}
 	
+		/// A single tappable card showing the translated and English labels for a detected object.
 	func resultCard(_ result: FoundationAIService.QuizResult) -> some View {
 		Button {
 			selectedResult = result
@@ -123,7 +121,7 @@ private extension QuickScanView {
 				
 				VStack(alignment: .leading, spacing: 6) {
 					
-					HStack{
+					HStack {
 						Text(result.translatedWord.capitalized)
 							.font(.system(.title3, design: .rounded).bold())
 							.foregroundStyle(.primary)
@@ -132,7 +130,6 @@ private extension QuickScanView {
 							.font(.system(size: 17, weight: .semibold))
 							.foregroundStyle(.tertiary)
 					}
-					
 					
 					Text(result.correctEnglish.uppercased())
 						.font(.system(size: 10, weight: .bold, design: .monospaced))
@@ -160,6 +157,7 @@ private extension QuickScanView {
 		.buttonStyle(.plain)
 	}
 	
+		/// Pulsing prompt shown before the first scan.
 	var tapToIdentifyHint: some View {
 		HStack(spacing: 10) {
 			Image(systemName: "hand.tap.fill")
@@ -173,6 +171,7 @@ private extension QuickScanView {
 		.scaleEffect(pulseScale)
 	}
 	
+		/// Toast shown when the scanner finds no recognizable objects.
 	var emptyStateToast: some View {
 		HStack(spacing: 8) {
 			Image(systemName: "xmark.circle.fill")
@@ -185,13 +184,13 @@ private extension QuickScanView {
 		.padding(.horizontal, 16)
 		.padding(.vertical, 10)
 		.background(.ultraThinMaterial, in: Capsule())
-			// Optional: add a subtle border to make it pop against dark backgrounds
 		.overlay(
 			Capsule()
 				.stroke(.white.opacity(0.1), lineWidth: 0.5)
 		)
 	}
-
+	
+		/// Bottom action area showing a New Scan button after results are displayed.
 	var bottomActionArea: some View {
 		VStack {
 			if scanStatus == .displaying {
@@ -213,6 +212,7 @@ private extension QuickScanView {
 		.padding(.bottom, 40)
 	}
 	
+		/// Full-screen overlay shown while the scan is being processed.
 	var analysisOverlay: some View {
 		ZStack {
 			Color.black.opacity(0.2).ignoresSafeArea()
@@ -228,13 +228,15 @@ private extension QuickScanView {
 	}
 }
 
-	// MARK: - Logic (untouched)
 @available(iOS 26.0, *)
 private extension QuickScanView {
+	
+		/// Connects the camera frame output to the pixel buffer state.
 	func setupDetector() {
 		cameraService.frameHandler = { buffer in self.latestPixelBuffer = buffer }
 	}
 	
+		/// Runs Vision detection on the current frame and sends labels to the AI for filtering and translation.
 	func performQuickScan() {
 		guard let buffer = latestPixelBuffer else { return }
 		
@@ -276,6 +278,7 @@ private extension QuickScanView {
 		}
 	}
 	
+		/// Updates UI with the final scan results.
 	func finalizeScan(with results: [FoundationAIService.QuizResult]) {
 		withAnimation(.spring(response: 0.45, dampingFraction: 0.8)) {
 			isAnalyzing = false
@@ -285,6 +288,7 @@ private extension QuickScanView {
 		}
 	}
 	
+		/// Handles the case where no objects are detected, then resets back to ready state.
 	@MainActor
 	func handleEmptyResult() async {
 		withAnimation(.spring()) {
@@ -296,6 +300,7 @@ private extension QuickScanView {
 		withAnimation { scanStatus = .ready }
 	}
 	
+		/// Clears current results and returns to the ready state for a new scan.
 	func resetScan() {
 		impact.impactOccurred()
 		withAnimation(.spring()) {
@@ -305,10 +310,7 @@ private extension QuickScanView {
 	}
 }
 
-
-	// MARK: - Word Detail Sheet
-
-
+	/// Detail sheet showing the translated word, English equivalent, and an AI-generated example sentence.
 @available(iOS 26.0, *)
 struct WordDetailSheet: View {
 	
@@ -322,6 +324,7 @@ struct WordDetailSheet: View {
 	
 	private let speech = SpeechService.shared
 	
+		/// Replaces underscores with spaces for display purposes.
 	func display(_ raw: String) -> String {
 		raw.replacingOccurrences(of: "_", with: " ")
 	}
@@ -330,7 +333,6 @@ struct WordDetailSheet: View {
 		NavigationStack {
 			VStack(spacing: 0) {
 				
-					// Hero (IDENTICAL STYLE TO WORD HINT)
 				ZStack {
 					LinearGradient(
 						colors: [Color.blue.opacity(0.09), Color.orange.opacity(0.06)],
@@ -397,18 +399,16 @@ struct WordDetailSheet: View {
 										.foregroundStyle(.secondary)
 									
 									Spacer()
-
 								}
 								
-									// Translated card (IDENTICAL STYLE)
 								VStack(alignment: .leading, spacing: 6) {
-									HStack{
+									HStack {
 										Label("Translated", systemImage: "character.bubble.fill")
 											.font(.system(size: 11, weight: .bold))
 											.foregroundStyle(.blue)
 										
 										Spacer()
-											// SPEAKER BUTTON NOW LIVES HERE
+										
 										Button {
 											speech.speak(s.translated)
 										} label: {
@@ -435,7 +435,6 @@ struct WordDetailSheet: View {
 										.strokeBorder(Color.blue.opacity(0.14), lineWidth: 1)
 								)
 								
-									// English card (IDENTICAL STYLE)
 								VStack(alignment: .leading, spacing: 6) {
 									Label("English", systemImage: "textformat.abc")
 										.font(.system(size: 11, weight: .bold))
@@ -501,7 +500,7 @@ struct WordDetailSheet: View {
 	}
 }
 
-	// MARK: - Instructions (untouched)
+	/// Sheet with tips on how to get the best results from the Quick Scan feature.
 struct QuickScanInstructionsSheet: View {
 	@Environment(\.dismiss) var dismiss
 	
@@ -537,10 +536,10 @@ struct QuickScanInstructionsSheet: View {
 				ToolbarItem(placement: .cancellationAction) {
 					Button {
 						dismiss()
-					} label : {
+					} label: {
 						Image(systemName: "xmark")
 					}
-						.fontWeight(.semibold)
+					.fontWeight(.semibold)
 				}
 			}
 		}

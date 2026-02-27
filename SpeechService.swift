@@ -1,23 +1,26 @@
-
 import Foundation
 import SwiftUI
 import AVFoundation
 
+/// Handles all text-to-speech playback for the app.
 @MainActor
 final class SpeechService {
 	
+	/// Stores the user’s selected language persistently.
 	@AppStorage("selected_language")
 	private var selectedLanguageRaw = AppLanguage.french.rawValue
 	
+	/// Apple speech engine responsible for audio playback.
 	private let synthesizer = AVSpeechSynthesizer()
 	
-		// Singleton (recommended)
+	/// Shared singleton instance  of SpeechSrvice used across the app.
 	static let shared = SpeechService()
 	
 	private init() {}
 	
-		// MARK: - Public
 	
+	/// Speaks the provided text using the selected language voice.
+	/// Stops any currently playing speech before starting new audio.
 	func speak(_ text: String) {
 		guard !text.isEmpty else { return }
 		
@@ -36,26 +39,28 @@ final class SpeechService {
 	}
 	
 	
+	/// Immediately stops any ongoing speech playback.
 	func stop() {
 		synthesizer.stopSpeaking(at: .immediate)
 	}
 	
-		// MARK: - Voice Selection (OFFLINE SAFE)
 	
+	/// Finds the best available offline voice for a language code.
+	/// Falls back safely if an exact match is unavailable.
 	private func bestAvailableVoice(
 		for languageCode: String
 	) -> AVSpeechSynthesisVoice {
 		
 		let voices = AVSpeechSynthesisVoice.speechVoices()
 		
-			// 1. Exact match (fr-FR)
+		// Try exact match (e.g. fr-FR)
 		if let exact = voices.first(where: {
 			$0.language.lowercased() == languageCode.lowercased()
 		}) {
 			return exact
 		}
 		
-			// 2. Match language prefix (fr matches fr-FR)
+		// Match by language prefix (e.g. fr matches fr-CA)
 		let prefix = languageCode.prefix(2).lowercased()
 		
 		if let prefixMatch = voices.first(where: {
@@ -64,13 +69,14 @@ final class SpeechService {
 			return prefixMatch
 		}
 		
-			// 3. Last resort: system default voice (always exists offline)
-		return AVSpeechSynthesisVoice(language:
-										AVSpeechSynthesisVoice.currentLanguageCode()
+			// Guaranteed offline fallback
+		return AVSpeechSynthesisVoice(
+			language: AVSpeechSynthesisVoice.currentLanguageCode()
 		)!
 	}
 }
 
+/// Converts an app language into the correct speech engine locale code.
 private func speechCode(for language: AppLanguage) -> String {
 	switch language {
 		case .french:

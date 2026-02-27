@@ -1,12 +1,6 @@
-//
-//  Language.swift
-//  LingoLense
-//
-//  Created by SDC-USER on 14/02/26.
-//
-
 import Foundation
 
+	/// Supported target languages for translation throughout the app.
 enum AppLanguage: String, CaseIterable, Identifiable, Codable {
 	
 	case french = "French"
@@ -20,6 +14,7 @@ enum AppLanguage: String, CaseIterable, Identifiable, Codable {
 		rawValue
 	}
 	
+		/// Flag emoji for the language.
 	var flag: String {
 		switch self {
 			case .french: return "🇫🇷"

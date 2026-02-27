@@ -1,6 +1,7 @@
 import SwiftUI
 import AVFoundation
 
+	/// SwiftUI wrapper around an AVCaptureSession preview layer.
 struct CameraPreview: UIViewRepresentable {
 	let session: AVCaptureSession
 	
@@ -14,6 +15,7 @@ struct CameraPreview: UIViewRepresentable {
 	func updateUIView(_ uiView: PreviewView, context: Context) {}
 }
 
+	/// UIView subclass that uses AVCaptureVideoPreviewLayer as its backing layer and handles rotation updates.
 final class PreviewView: UIView {
 	
 	override class var layerClass: AnyClass {
@@ -35,6 +37,7 @@ final class PreviewView: UIView {
 		updateRotation()
 	}
 	
+		/// Updates the preview layer's rotation angle to match the current device orientation.
 	private func updateRotation() {
 		guard let connection = videoPreviewLayer.connection else { return }
 		let orientation = UIDevice.current.orientation
@@ -44,14 +47,12 @@ final class PreviewView: UIView {
 			case .landscapeLeft:        angle = 0
 			case .landscapeRight:       angle = 180
 			case .portraitUpsideDown:   angle = 270
-			default:                    angle = 90   // portrait
+			default:                    angle = 90
 		}
 		
 		if connection.isVideoRotationAngleSupported(angle) {
 			if #available(iOS 17.0, *) {
 				connection.videoRotationAngle = angle
-			} else {
-					// Fallback on earlier versions
 			}
 		}
 	}

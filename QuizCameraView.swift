@@ -1,24 +1,20 @@
 import SwiftUI
 import Vision
 
+	/// Camera-based view that guides the user through identifying each quiz object in real life.
 @available(iOS 26.0, *)
 struct QuizCameraView: View {
-		// MARK: - Properties
 	let quizzes: [FoundationAIService.QuizResult]
 	let onFinished: (Int) -> Void
 	
 	@StateObject private var cameraService = CameraService()
 	@State private var detector = ObjectDetector()
 	
-		// Core State
 	@State private var latestPixelBuffer: CVPixelBuffer?
 	@State private var currentIndex: Int = 0
 	@State private var score: Int = 0
-	
-		// FIX: stable snapshot — never derived from index during async ops
 	@State private var activeQuiz: FoundationAIService.QuizResult? = nil
 	
-		// UI State
 	@State private var isDetecting = false
 	@State private var showAnswer = false
 	@State private var showHelp = false
@@ -26,16 +22,13 @@ struct QuizCameraView: View {
 	@State private var detectionLocked = false
 	@State private var pulseScale: CGFloat = 1.0
 	
-		// Hint sheet
 	@State private var showSentenceHint = false
 	@State private var hintSentence: FoundationAIService.BilingualSentence? = nil
 	@State private var isLoadingHint = false
 	
-		// Success sentence
 	@State private var successSentence: FoundationAIService.BilingualSentence? = nil
 	@State private var isLoadingSuccessSentence = false
 	
-		// Revealed answer sentence
 	@State private var revealedSentence: FoundationAIService.BilingualSentence? = nil
 	@State private var isLoadingRevealedSentence = false
 	
@@ -49,14 +42,12 @@ struct QuizCameraView: View {
 	private let impact = UIImpactFeedbackGenerator(style: .medium)
 	private let notification = UINotificationFeedbackGenerator()
 	
-		// MARK: - Body
 	var body: some View {
 		NavigationStack {
 			ZStack {
 				CameraPreview(session: cameraService.session)
 					.ignoresSafeArea()
 				
-					// Top vignette
 				VStack {
 					LinearGradient(
 						colors: [.black.opacity(0.35), .clear],
@@ -68,12 +59,10 @@ struct QuizCameraView: View {
 					Spacer()
 				}
 				
-					// HUD — only renders when activeQuiz is set
 				if let quiz = activeQuiz {
 					hudLayer(quiz: quiz)
 				}
 				
-					// Processing overlay
 				if isDetecting {
 					processingOverlay
 				}
@@ -103,7 +92,6 @@ struct QuizCameraView: View {
 			.sheet(isPresented: $showHelp) {
 				InstructionsSheet()
 			}
-				// FIX: sheet uses activeQuiz snapshot, not live index
 			.sheet(isPresented: $showSentenceHint) {
 				if let quiz = activeQuiz {
 					SentenceHintSheet(
@@ -115,7 +103,6 @@ struct QuizCameraView: View {
 				}
 			}
 			.onAppear {
-					// FIX: set activeQuiz on appear
 				activeQuiz = quizzes[currentIndex]
 				setupDetector()
 				cameraService.start()
@@ -127,7 +114,6 @@ struct QuizCameraView: View {
 			}
 			.onDisappear { cameraService.stop() }
 			.onTapGesture {
-					// CHANGE: If answer is shown, tap to detect is disabled to force "Continue"
 				if !showAnswer {
 					attemptDetection()
 				}
@@ -135,8 +121,7 @@ struct QuizCameraView: View {
 		}
 	}
 	
-		// FIX: entire HUD extracted and receives quiz as parameter
-		// so all child views render from the same stable snapshot
+		/// The full camera HUD rendered from a stable quiz snapshot to avoid stale state during async ops.
 	@ViewBuilder
 	func hudLayer(quiz: FoundationAIService.QuizResult) -> some View {
 		VStack(spacing: 0) {
@@ -145,28 +130,24 @@ struct QuizCameraView: View {
 			
 			Spacer()
 			
-				// Show Answer card
 			if showAnswer && detectionStatus != .success {
 				revealedAnswerCard(quiz: quiz)
 					.transition(.move(edge: .bottom).combined(with: .opacity))
 					.padding(.bottom, 12)
 			}
 			
-				// Failure toast
 			if detectionStatus == .failure {
 				failureToast
 					.transition(.move(edge: .top).combined(with: .opacity))
 					.padding(.bottom, 12)
 			}
 			
-				// Success card
 			if detectionStatus == .success {
 				successMatchCard(quiz: quiz)
 					.transition(.scale(scale: 0.9).combined(with: .opacity))
 					.padding(.bottom, 12)
 			}
 			
-				// Tap hint
 			if detectionStatus == .ready && !isDetecting && !showAnswer {
 				tapToDetectLabel
 					.padding(.bottom, 12)
@@ -183,10 +164,10 @@ struct QuizCameraView: View {
 	}
 }
 
-	// MARK: - Logic
 @available(iOS 26.0, *)
 private extension QuizCameraView {
 	
+		/// Wires up the camera frame handler and Vision prediction callback.
 	func setupDetector() {
 		cameraService.frameHandler = { buffer in
 			self.latestPixelBuffer = buffer
@@ -194,7 +175,6 @@ private extension QuizCameraView {
 		detector.onPredictions = { [self] observations in
 			guard isDetecting, let quiz = activeQuiz else { return }
 			let labels = observations.map { $0.identifier.lowercased() }
-				// FIX: match against snapshot, not live computed property
 			let target = quiz.correctEnglish
 				.replacingOccurrences(of: "_", with: " ")
 				.lowercased()
@@ -205,6 +185,7 @@ private extension QuizCameraView {
 		}
 	}
 	
+		/// Triggers a Vision scan on the latest camera frame.
 	func attemptDetection() {
 		guard
 			!detectionLocked,
@@ -222,6 +203,7 @@ private extension QuizCameraView {
 		detector.detect(from: buffer)
 	}
 	
+		/// Applies the detection result and updates UI state accordingly.
 	func finalizeDetection(isMatch: Bool) {
 		DispatchQueue.main.async {
 			withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
@@ -247,12 +229,12 @@ private extension QuizCameraView {
 		}
 	}
 	
+		/// Advances to the next quiz object, or finishes the session if all objects are done.
 	func nextObject() {
 		let nextIndex = currentIndex + 1
 		if nextIndex >= quizzes.count {
 			onFinished(score)
 		} else {
-				// FIX: update snapshot FIRST, then reset all state atomically
 			let nextQuiz = quizzes[nextIndex]
 			withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
 				currentIndex = nextIndex
@@ -271,8 +253,8 @@ private extension QuizCameraView {
 		}
 	}
 	
+		/// Loads an AI-generated bilingual example sentence for the hint sheet.
 	func loadHintSentence() {
-			// FIX: capture snapshot word before async boundary
 		guard let quiz = activeQuiz else { return }
 		guard hintSentence == nil, !isLoadingHint else {
 			showSentenceHint = true
@@ -285,7 +267,6 @@ private extension QuizCameraView {
 		Task {
 			let result = await aiService.generateBilingualSentence(for: word)
 			await MainActor.run {
-					// FIX: only apply if still on same question
 				guard currentIndex == capturedIndex else { return }
 				hintSentence = result
 				isLoadingHint = false
@@ -293,6 +274,7 @@ private extension QuizCameraView {
 		}
 	}
 	
+		/// Loads a bilingual sentence to show after a successful object match.
 	func loadSuccessSentence() {
 		guard let quiz = activeQuiz else { return }
 		guard successSentence == nil, !isLoadingSuccessSentence else { return }
@@ -309,6 +291,7 @@ private extension QuizCameraView {
 		}
 	}
 	
+		/// Loads a bilingual sentence to show when the user reveals the answer.
 	func loadRevealedSentence() {
 		guard let quiz = activeQuiz else { return }
 		guard revealedSentence == nil, !isLoadingRevealedSentence else { return }
@@ -325,17 +308,16 @@ private extension QuizCameraView {
 		}
 	}
 	
-		// Sanitize display strings — removes underscores from Vision labels
+		/// Replaces underscores with spaces for display purposes.
 	func display(_ raw: String) -> String {
 		raw.replacingOccurrences(of: "_", with: " ")
 	}
 }
 
-	// MARK: - UI Components
 @available(iOS 26.0, *)
 private extension QuizCameraView {
 	
-		// FIX: all card views receive quiz as explicit parameter
+		/// Banner showing the current target word and a hint button.
 	func targetWordBanner(quiz: FoundationAIService.QuizResult) -> some View {
 		HStack(spacing: 12) {
 			VStack(alignment: .leading, spacing: 2) {
@@ -393,6 +375,7 @@ private extension QuizCameraView {
 		.shadow(color: .black.opacity(0.18), radius: 10, y: 4)
 	}
 	
+		/// Pulsing label prompting the user to tap and scan.
 	var tapToDetectLabel: some View {
 		VStack(spacing: 6) {
 			HStack(spacing: 7) {
@@ -423,6 +406,7 @@ private extension QuizCameraView {
 		.scaleEffect(pulseScale)
 	}
 	
+		/// Small toast shown when the scanned object didn't match the target.
 	var failureToast: some View {
 		HStack(spacing: 8) {
 			Image(systemName: "xmark.circle.fill")
@@ -438,7 +422,7 @@ private extension QuizCameraView {
 		.overlay(Capsule().strokeBorder(.red.opacity(0.25), lineWidth: 1))
 	}
 	
-		// FIX: Show Answer card — "No worries, the answer was..."
+		/// Card shown when the user chooses to reveal the answer without finding the object.
 	func revealedAnswerCard(quiz: FoundationAIService.QuizResult) -> some View {
 		VStack(spacing: 14) {
 			
@@ -466,7 +450,6 @@ private extension QuizCameraView {
 				}
 			}
 			
-				// Sentence
 			if isLoadingRevealedSentence {
 				HStack(spacing: 7) {
 					ProgressView().controlSize(.mini)
@@ -491,6 +474,7 @@ private extension QuizCameraView {
 		.padding(.horizontal, 20)
 	}
 	
+		/// Card shown after a successful match, with the word pair and an example sentence.
 	func successMatchCard(quiz: FoundationAIService.QuizResult) -> some View {
 		VStack(spacing: 14) {
 			
@@ -539,7 +523,7 @@ private extension QuizCameraView {
 		.padding(.horizontal, 20)
 	}
 	
-		// Shared sentence card pair — used in both success and revealed answer
+		/// Reusable bilingual sentence display used in both success and revealed answer cards.
 	func sentenceCards(sentence: FoundationAIService.BilingualSentence) -> some View {
 		VStack(spacing: 8) {
 			VStack(alignment: .leading, spacing: 4) {
@@ -574,9 +558,9 @@ private extension QuizCameraView {
 		}
 	}
 	
+		/// Bottom area with a combined Show Answer / Continue Hunt button.
 	var bottomActionArea: some View {
 		VStack(spacing: 12) {
-				// Computed state for the combined button
 			let isComplete = detectionStatus == .success || showAnswer
 			
 			Button {
@@ -618,6 +602,7 @@ private extension QuizCameraView {
 		}
 	}
 	
+		/// Full-screen overlay shown while Vision is analyzing the camera frame.
 	var processingOverlay: some View {
 		ZStack {
 			Color.black.opacity(0.28).ignoresSafeArea()
@@ -656,8 +641,7 @@ private extension QuizCameraView {
 	}
 }
 
-
-	// MARK: - Sentence Hint Sheet
+	/// Sheet showing a bilingual example sentence as a hint for the current target word.
 @available(iOS 26.0, *)
 struct SentenceHintSheet: View {
 	
@@ -669,6 +653,7 @@ struct SentenceHintSheet: View {
 	@Environment(\.dismiss) private var dismiss
 	private let speech = SpeechService.shared
 	
+		/// Replaces underscores with spaces for display purposes.
 	func display(_ raw: String) -> String {
 		raw.replacingOccurrences(of: "_", with: " ")
 	}
@@ -677,7 +662,6 @@ struct SentenceHintSheet: View {
 		NavigationStack {
 			VStack(spacing: 0) {
 				
-					// Hero
 				ZStack {
 					LinearGradient(
 						colors: [Color.blue.opacity(0.09), Color.orange.opacity(0.06)],
@@ -741,12 +725,10 @@ struct SentenceHintSheet: View {
 										.font(.system(.subheadline, design: .rounded).bold())
 										.foregroundStyle(.secondary)
 									Spacer()
-									
 								}
 								
-									// Translated sentence — always shown
 								VStack(alignment: .leading, spacing: 6) {
-									HStack{
+									HStack {
 										Label("Translated", systemImage: "character.bubble.fill")
 											.font(.system(size: 11, weight: .bold))
 											.foregroundStyle(.blue)
@@ -775,7 +757,6 @@ struct SentenceHintSheet: View {
 								.overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
 									.strokeBorder(Color.blue.opacity(0.14), lineWidth: 1))
 								
-									// English — only after correct guess
 								if revealAnswer {
 									VStack(alignment: .leading, spacing: 6) {
 										Label("English", systemImage: "textformat.abc")
@@ -838,8 +819,7 @@ struct SentenceHintSheet: View {
 	}
 }
 
-
-	// MARK: - Instruction Sheet
+	/// Sheet showing quick tips for how to use the scavenger hunt camera.
 struct InstructionsSheet: View {
 	@Environment(\.dismiss) var dismiss
 	var body: some View {

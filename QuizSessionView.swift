@@ -1,10 +1,11 @@
 import SwiftUI
 import Foundation
 
+	/// Manages a complete scavenger hunt session, showing prep screen, camera hunt, and results.
 @available(iOS 26.0, *)
 struct QuizSessionView: View {
 	
-	@Binding var path: NavigationPath // 1. Add Binding
+	@Binding var path: NavigationPath
 	
 	@Environment(\.dismiss) private var dismiss
 	
@@ -42,7 +43,6 @@ struct QuizSessionView: View {
 	}
 }
 
-	// MARK: - Shared Gradient
 private extension ShapeStyle where Self == LinearGradient {
 	static var accentGradient: LinearGradient {
 		LinearGradient(
@@ -53,16 +53,15 @@ private extension ShapeStyle where Self == LinearGradient {
 	}
 }
 
-	// MARK: - Start View
 @available(iOS 26.0, *)
 private extension QuizSessionView {
 	
+		/// Pre-hunt start screen with tips and a start button.
 	var startView: some View {
 		ZStack {
-				// Adaptive background
+			
 			Color(.systemGroupedBackground).ignoresSafeArea()
 			
-				// Ambient orbs — subtle in both light/dark
 			GeometryReader { geo in
 				ZStack {
 					Circle()
@@ -95,10 +94,8 @@ private extension QuizSessionView {
 				
 				Spacer()
 				
-					// Hero
 				VStack(spacing: 14) {
 					ZStack {
-							// Soft gradient fill ring
 						Circle()
 							.fill(
 								LinearGradient(
@@ -108,7 +105,6 @@ private extension QuizSessionView {
 							)
 							.frame(width: 84, height: 84)
 						
-							// Gradient stroke ring
 						Circle()
 							.strokeBorder(
 								LinearGradient(
@@ -149,7 +145,6 @@ private extension QuizSessionView {
 				
 				Spacer()
 				
-					// Tips card
 				VStack(spacing: 0) {
 					tipRow(icon: "sun.max.fill", iconColor: .orange, text: "Point your camera at the object you're looking for.", isLast: false)
 					tipRow(icon: "hand.tap.fill", iconColor: .blue, text: "Tap anywhere on screen to scan and identify it.", isLast: false)
@@ -180,7 +175,6 @@ private extension QuizSessionView {
 				
 				Spacer()
 				
-					// Start button
 				Button {
 					UIImpactFeedbackGenerator(style: .medium).impactOccurred()
 					showCamera = true
@@ -229,6 +223,7 @@ private extension QuizSessionView {
 		.onDisappear { appeared = false }
 	}
 	
+		/// A single row in the tips card with an icon and description text.
 	func tipRow(icon: String, iconColor: Color, text: String, isLast: Bool) -> some View {
 		VStack(spacing: 0) {
 			HStack(spacing: 14) {
@@ -261,10 +256,10 @@ private extension QuizSessionView {
 	}
 }
 
-	// MARK: - Empty View
 @available(iOS 26.0, *)
 private extension QuizSessionView {
 	
+		/// Shown when no objects are available to hunt.
 	var emptyView: some View {
 		VStack(spacing: 20) {
 			ZStack {
@@ -314,15 +309,14 @@ private extension QuizSessionView {
 	}
 }
 
-	// MARK: - Completion View
 @available(iOS 26.0, *)
 private extension QuizSessionView {
 	
+		/// Post-hunt summary showing score, progress bar, and per-item results.
 	var completionView: some View {
 		ZStack {
 			Color(.systemGroupedBackground).ignoresSafeArea()
 			
-				// Ambient orbs
 			GeometryReader { geo in
 				ZStack {
 					Circle()
@@ -355,9 +349,8 @@ private extension QuizSessionView {
 				
 				Spacer()
 				
-					// Score card
 				VStack(spacing: 20) {
-						// Emoji in gradient ring
+					
 					ZStack {
 						Circle()
 							.fill(
@@ -392,7 +385,6 @@ private extension QuizSessionView {
 							.foregroundStyle(.secondary)
 					}
 					
-						// Score number with gradient
 					VStack(spacing: 4) {
 						Text("\(score) / \(quizzes.count)")
 							.font(.system(size: 54, weight: .bold, design: .rounded))
@@ -411,7 +403,6 @@ private extension QuizSessionView {
 							.tracking(1.5)
 					}
 					
-						// Progress bar
 					GeometryReader { geo in
 						ZStack(alignment: .leading) {
 							Capsule()
@@ -455,7 +446,6 @@ private extension QuizSessionView {
 				
 				Spacer()
 				
-					// Results list
 				VStack(alignment: .leading, spacing: 10) {
 					HStack {
 						Text("Results")
@@ -556,7 +546,6 @@ private extension QuizSessionView {
 				
 				Spacer()
 				
-					// Done button
 				Button {
 					path = NavigationPath()
 				} label: {
@@ -588,15 +577,16 @@ private extension QuizSessionView {
 	}
 }
 
-	// MARK: - Score Helpers
 @available(iOS 26.0, *)
 private extension QuizSessionView {
 	
+		/// Score as a fraction between 0 and 1.
 	var scorePercent: Double {
 		guard quizzes.count > 0 else { return 0 }
 		return Double(score) / Double(quizzes.count)
 	}
 	
+		/// Emoji representing the player's performance tier.
 	var scoreEmoji: String {
 		if scorePercent == 1.0 { return "🏆" }
 		if scorePercent >= 0.7 { return "🎯" }
@@ -604,6 +594,7 @@ private extension QuizSessionView {
 		return "🔁"
 	}
 	
+		/// Accent color based on performance tier.
 	var scoreColor: Color {
 		if scorePercent == 1.0 { return .orange }
 		if scorePercent >= 0.7 { return .green }
@@ -611,6 +602,7 @@ private extension QuizSessionView {
 		return Color(red: 0.55, green: 0.4, blue: 0.9)
 	}
 	
+		/// Short motivational label based on score percentage.
 	var performanceLabel: String {
 		if scorePercent == 1.0 { return "Perfect score. Impressive." }
 		if scorePercent >= 0.7 { return "Great work. Keep it up." }
@@ -619,10 +611,10 @@ private extension QuizSessionView {
 	}
 }
 
-	// MARK: - Load Quiz Logic
 @available(iOS 26.0, *)
 private extension QuizSessionView {
 	
+		/// Fetches and prepares the quiz list from the AI service, filling in any missing objects manually.
 	func loadQuiz() async {
 		loading = true
 		

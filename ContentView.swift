@@ -1,22 +1,20 @@
 import SwiftUI
 
+	/// Root home screen with language picker, mode descriptions, and navigation into each feature.
 @available(iOS 26.0, *)
 struct ContentView: View {
 	
 	@State private var navigationPath = NavigationPath()
 	
-		// MARK: - State
 	@AppStorage("selected_language")
 	private var selectedLanguageRaw = AppLanguage.french.rawValue
 	
-		// Track which info type to show
 	@State private var activeInfoType: InfoType?
 	
 	private var selectedLanguage: AppLanguage {
 		AppLanguage(rawValue: selectedLanguageRaw) ?? .french
 	}
 	
-		// MARK: - Body
 	var body: some View {
 		NavigationStack(path: $navigationPath) {
 			ScrollView(showsIndicators: false) {
@@ -50,16 +48,16 @@ struct ContentView: View {
 	}
 }
 
-	// MARK: - Supporting Types
+	/// Identifies which info sheet to present.
 enum InfoType: String, Identifiable {
 	case quickScan, scavengerHunt
 	var id: String { self.rawValue }
 }
 
-	// MARK: - UI Components
 @available(iOS 26.0, *)
 private extension ContentView {
 	
+		/// Short tagline shown at the top of the screen.
 	var descriptionHeader: some View {
 		Text("Transform your world into a living language laboratory.")
 			.font(.system(.title3, design: .rounded))
@@ -69,6 +67,7 @@ private extension ContentView {
 			.padding(.top, -10)
 	}
 	
+		/// Menu for switching the active learning language.
 	var languagePicker: some View {
 		Menu {
 			Picker("Choose Language", selection: $selectedLanguageRaw) {
@@ -106,6 +105,7 @@ private extension ContentView {
 		}
 	}
 	
+		/// Card listing both learning modes with info buttons.
 	var instructionsSection: some View {
 		VStack(alignment: .leading, spacing: 16) {
 			Text("Learning Modes")
@@ -136,6 +136,7 @@ private extension ContentView {
 		}
 	}
 	
+		/// A single tappable row describing a learning mode.
 	func stepRow(icon: String, color: Color, title: String, text: String, action: @escaping () -> Void) -> some View {
 		Button(action: action) {
 			HStack(spacing: 16) {
@@ -170,6 +171,7 @@ private extension ContentView {
 		.buttonStyle(.plain)
 	}
 	
+		/// Two primary action buttons for launching Quick Scan or Scavenger Hunt.
 	var modeSelectionArea: some View {
 		HStack(spacing: 16) {
 			NavigationLink(destination: QuickScanView(path: $navigationPath)) {
@@ -182,7 +184,6 @@ private extension ContentView {
 					.clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
 			}
 			NavigationLink(value: "start_hunt") {
-//			NavigationLink(destination: ScannerView()) {
 				Label("Start Hunt", systemImage: "flag.checkered")
 					.font(.headline)
 					.frame(maxWidth: .infinity)
@@ -194,9 +195,9 @@ private extension ContentView {
 		}
 	}
 	
+		/// Privacy assurance blurb shown at the bottom of the screen.
 	var privacySection: some View {
 		VStack(spacing: 16) {
-				// Modern Shield Badge
 			ZStack {
 				Circle()
 					.fill(Color.blue.opacity(0.1))
@@ -223,8 +224,7 @@ private extension ContentView {
 	}
 }
 
-	// MARK: - The Consolidated Info Sheet
-
+	/// Sheet explaining how either Quick Scan or Scavenger Hunt works.
 struct LingoInfoSheet: View {
 	@Environment(\.dismiss) private var dismiss
 	let type: InfoType
@@ -234,7 +234,6 @@ struct LingoInfoSheet: View {
 		NavigationStack {
 			ScrollView {
 				VStack(alignment: .center, spacing: 32) {
-						// Icon and Header Section
 					VStack(spacing: 16) {
 						ZStack {
 							Circle()
@@ -259,7 +258,6 @@ struct LingoInfoSheet: View {
 						}
 					}
 					
-						// Instruction List
 					VStack(spacing: 0) {
 						if type == .quickScan {
 							InstructionDetailRow(
@@ -318,16 +316,17 @@ struct LingoInfoSheet: View {
 				ToolbarItem(placement: .cancellationAction) {
 					Button {
 						dismiss()
-					} label : {
+					} label: {
 						Image(systemName: "xmark")
 					}
-						.fontWeight(.bold)
+					.fontWeight(.bold)
 				}
 			}
 		}
 	}
 }
 
+	/// A single step row used inside info sheets.
 struct InstructionDetailRow: View {
 	let icon: String
 	let color: Color
@@ -359,4 +358,3 @@ struct InstructionDetailRow: View {
 		.padding(.horizontal, 20)
 	}
 }
-

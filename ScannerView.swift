@@ -3,7 +3,7 @@ import Vision
 
 @available(iOS 26.0, *)
 struct ScannerView: View {
-	@Binding var path: NavigationPath // 1. Add Binding
+	@Binding var path: NavigationPath
 	@StateObject private var cameraService = CameraService()
 	@State private var detector = ObjectDetector()
 	
@@ -51,6 +51,7 @@ struct ScannerView: View {
 @available(iOS 26.0, *)
 private extension ScannerView {
 	
+	/// Animated badge showing that live object scanning is in progress
 	struct ScanningStatusBadge: View {
 		
 		private let scanningSymbols = [
@@ -100,6 +101,7 @@ private extension ScannerView {
 		}
 	}
 	
+	/// Bottom glass card containing scan instructions, progress, and finish action
 	var bottomActionCard: some View {
 		VStack(spacing: 20) {
 			
@@ -117,7 +119,6 @@ private extension ScannerView {
 			.padding(.vertical, 14)
 			.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
 			
-				// Progress dots
 			HStack(spacing: 6) {
 				ForEach(0..<min(seenObjects.count, 8), id: \.self) { _ in
 					Circle()
@@ -127,7 +128,6 @@ private extension ScannerView {
 			}
 			.animation(.spring(), value: seenObjects.count)
 			
-				// Primary action button
 			Button(action: stopScanAndProceed) {
 				HStack {
 					Text("Finish Scan ")
@@ -150,6 +150,7 @@ private extension ScannerView {
 		}
 	}
 	
+	/// Starts camera capture and continuously runs object detection on frames
 	func startDetection() {
 		detector.onPredictions = { results in
 			for observation in results {
@@ -167,6 +168,7 @@ private extension ScannerView {
 		cameraService.start()
 	}
 	
+	/// Stops scanning, saves detected objects, and navigates to results screen
 	func stopScanAndProceed() {
 		UIImpactFeedbackGenerator(style: .medium).impactOccurred()
 		cameraService.stop()
@@ -175,7 +177,7 @@ private extension ScannerView {
 	}
 }
 
-	// MARK: - Instructions Sheet
+/// Help sheet explaining how to properly scan objects
 struct ScannerInstructionsSheet: View {
 	@Environment(\.dismiss) var dismiss
 	
@@ -221,6 +223,7 @@ struct ScannerInstructionsSheet: View {
 	}
 }
 
+/// Reusable row showing a single instruction with icon and explanation
 struct InstructionRow: View {
 	let icon: String
 	let color: Color

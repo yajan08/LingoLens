@@ -1,6 +1,7 @@
 import Foundation
 import AVFoundation
 
+	/// Manages the AVCaptureSession lifecycle and delivers raw pixel buffers via a frame handler closure.
 final class CameraService: NSObject, ObservableObject, @unchecked Sendable {
 	
 	let session = AVCaptureSession()
@@ -21,12 +22,9 @@ final class CameraService: NSObject, ObservableObject, @unchecked Sendable {
 	
 	private var isConfigured = false
 	
-		// MARK: - Public
-	
+		/// Configures the session if needed and starts the camera running.
 	func start() {
-		
 		sessionQueue.async {
-			
 			if !self.isConfigured {
 				self.configureSession()
 				self.isConfigured = true
@@ -38,10 +36,9 @@ final class CameraService: NSObject, ObservableObject, @unchecked Sendable {
 		}
 	}
 	
+		/// Stops the session and tears down all inputs and outputs.
 	func stop() {
-		
 		sessionQueue.async {
-			
 			guard self.session.isRunning else { return }
 			
 			self.session.stopRunning()
@@ -62,12 +59,9 @@ final class CameraService: NSObject, ObservableObject, @unchecked Sendable {
 		}
 	}
 	
-		// MARK: - Private
-	
+		/// Sets up the back camera input and video data output.
 	private func configureSession() {
-		
 		session.beginConfiguration()
-		
 		session.sessionPreset = .high
 		
 		guard
@@ -103,11 +97,6 @@ final class CameraService: NSObject, ObservableObject, @unchecked Sendable {
 			session.addOutput(videoOutput)
 			
 			if let connection = videoOutput.connection(with: .video) {
-				
-//				if #available(iOS 17.0, *) {
-//					connection.videoRotationAngle = 90
-//				}
-				
 				connection.isEnabled = true
 			}
 		}
@@ -116,8 +105,7 @@ final class CameraService: NSObject, ObservableObject, @unchecked Sendable {
 	}
 }
 
-	// MARK: - Delegate
-
+	/// Forwards captured video frames to the frame handler.
 extension CameraService: AVCaptureVideoDataOutputSampleBufferDelegate {
 	
 	func captureOutput(
@@ -125,7 +113,6 @@ extension CameraService: AVCaptureVideoDataOutputSampleBufferDelegate {
 		didOutput sampleBuffer: CMSampleBuffer,
 		from connection: AVCaptureConnection
 	) {
-		
 		guard
 			let buffer = CMSampleBufferGetImageBuffer(sampleBuffer),
 			let handler = frameHandler
